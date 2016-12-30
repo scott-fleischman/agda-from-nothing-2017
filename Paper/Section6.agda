@@ -78,11 +78,11 @@ module BinarySearchTreeWorks where
     pnode  :  ((<^ L ^>P -*- BST) ^ (<^ L ^>P -*- BST) >> BST) lu
   pattern node lt p rt = pnode (p / (! / lt) / (! / rt))
 
-  -- insert3 :  [ <$ L $>II >> BST >> BST ]
-  -- insert3 <$ y $>ii leaf            = node leaf y leaf
-  -- insert3 <$ y $>ii (node lt p rt)  with owoto y p
-  -- ... | le  = insert3 <$ y $>ii lt
-  -- ... | ge  = insert3 <$ y $>ii rt
+  insert3 :  [ <$ L $>II >> BST >> BST ]
+  insert3 <$ y $>ii leaf            = node leaf y leaf
+  insert3 <$ y $>ii (node lt p rt)  with owoto y p
+  ... | le  = {!!} -- insert3 <$ y $>ii lt
+  ... | ge  = {!!} -- insert3 <$ y $>ii rt
 
   insert2 : [ <$ L $>II >> BST >> BST ]
   insert2 <$ y $>ii leaf            = node leaf y leaf
