@@ -11,6 +11,7 @@ This workshop uses Agda 2.5.2, though I expect code to work on older versions.
 The official Agda installation instructions are [here](http://agda.readthedocs.io/en/latest/getting-started/installation.html).
 
 On Mac, I like to do the following:
+
 1. Install [stack](http://docs.haskellstack.org/en/stable/install_and_upgrade/#mac-os-x)
 2. In a terminal run: `stack install --resolver nightly-2016-12-29 Agda`
 3. Install [Aquamacs](http://aquamacs.org/)
@@ -19,6 +20,8 @@ On Mac, I like to do the following:
 
 ## Emacs Keybindings
 See the [Agda docs](http://agda.readthedocs.io/en/latest/tools/emacs-mode.html) for all of the key bindings. Here are ones I commonly use. Note `C-` indicates holding the control key.
+
+Note that the code in the workshop will only use ASCII so you do not need to use [Agda's Unicode input](http://agda.readthedocs.io/en/latest/tools/emacs-mode.html#unicode-input) shortcuts (unless of course you want to!).
 
 ### Global (can be used anywhere)
 * C-c C-l — Load file. I use this constantly.
