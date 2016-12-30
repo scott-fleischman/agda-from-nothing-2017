@@ -13,8 +13,8 @@ and true false = false
 and false true = false
 and false false = false
 
---or : Bool -> Bool -> Bool
---or x y = {!!}
+or : Bool -> Bool -> Bool
+or x y = {!!}
 
 if_then_else_ : Bool -> Bool -> Bool -> Bool
 if true then x else y = x
@@ -69,7 +69,6 @@ unsafe-index : (A : Set) -> Nat -> List A -> A
 unsafe-index A i       empty     = {!!} -- error -- what to do?
 unsafe-index A zero    (add x xs) = x
 unsafe-index A (suc i) (add x xs) = unsafe-index A i xs
-
 
 
 data Vec (A : Set) : Nat -> Set where

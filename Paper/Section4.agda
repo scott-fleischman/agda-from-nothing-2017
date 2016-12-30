@@ -50,4 +50,4 @@ module BinarySearchTreeBetter where
   insert2 y leaf            = node leaf y leaf
   insert2 y (node lt p rt)  =
     if le y p  then  node (insert2 y lt) p rt
-               else  node lt p (insert2 y rt)
+               else  node lt p {!!} -- (insert2 y rt)

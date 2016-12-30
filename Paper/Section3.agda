@@ -101,5 +101,5 @@ module BinarySearchTreeBad
   shite : forall {r} y -> BST r -> BST (oRange r y)
   shite y lfS            = ndS lfS y lfS
   shite y (ndS lt p rt)  =
-    if le y p  then  (ndS (shite y lt) p rt)
-               else  (ndS lt p (shite y rt))
+    if le y p  then  ? -- (ndS (shite y lt) p rt)
+               else  ? -- (ndS lt p (shite y rt))
