@@ -1,4 +1,4 @@
-module Part2 where
+module Part2-Skip where
 
 data Two : Set where
   true false : Two
