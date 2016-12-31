@@ -1,4 +1,4 @@
-module Section6 where
+module Section8 where
 
 data Zero : Set where                  -- no constructors!
 record One : Set where constructor it  -- no fields!
@@ -67,25 +67,30 @@ infixr 5 _\\_\\_
 <$ L $>II = <^ L ^>P ^ <^ L ^>P
 pattern <$_$>ii p = ! \\ p \\ !
 
-module BinarySearchTreeWorks where
+module BinarySearchTreeBest where
   postulate
     P : Set
     L : REL P
     owoto : forall x y -> OWOTO L (x / y)
 
   data BST (lu : <$ P $>D * <$ P $>D) : Set where
-    leaf   :  BST lu
-    pnode  :  ((<^ L ^>P -*- BST) ^ (<^ L ^>P -*- BST) >> BST) lu
-  pattern node lt p rt = pnode (p / (! / lt) / (! / rt))
+    pleaf  :  (<^ L ^>P >> BST) lu
+    pnode  :  (BST ^ BST >> BST) lu
 
-  insert3 :  [ <$ L $>II >> BST >> BST ]
-  insert3 <$ y $>ii leaf            = node leaf y leaf
-  insert3 <$ y $>ii (node lt p rt)  with owoto y p
-  ... | le  = {!!} -- insert3 <$ y $>ii lt
-  ... | ge  = {!!} -- insert3 <$ y $>ii rt
+  pattern leaf          = pleaf !
+  pattern node lt p rt  = pnode (lt \\ p \\ rt)
 
-  insert2 : [ <$ L $>II >> BST >> BST ]
-  insert2 <$ y $>ii leaf            = node leaf y leaf
-  insert2 <$ y $>ii (node lt p rt) with owoto y p
+  insert2 :  [ <$ L $>II >> BST >> BST ]
+  insert2 <$ y $>ii leaf = node leaf y leaf
+  insert2 <$ y $>ii (node lt p rt)  with owoto y p
   ... | le  = node (insert2 <$ y $>ii lt) p rt
   ... | ge  = node lt p (insert2 <$ y $>ii rt)
+
+  rotR : [ BST >> BST ]
+  rotR (node (node lt m mt) p rt)
+     = node lt m (node mt p rt)
+  rotR t = t
+
+  data OList (lu : <$ P $>D * <$ P $>D) : Set where
+    nil   :  (<^ L ^>P >> OList) lu
+    cons  :  (<^ L ^>P ^ OList >> OList) lu 
