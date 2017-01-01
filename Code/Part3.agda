@@ -41,9 +41,6 @@ infixr 4 _+_
 OWOTO : forall {P}(L : REL P) -> REL P
 OWOTO L (x / y) = <P L (x / y) P> + <P L (y / x) P>
 
-pattern le  = inl !
-pattern ge  = inr !
-
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
 
@@ -66,8 +63,8 @@ module BinarySearchTreeBest
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
   insert (y / ! / !) leaf = node leaf y leaf
   insert (y / ! / !) (node lt p rt)  with owoto y p
-  ... | le  = node (insert (y / ! / !) lt) p rt
-  ... | ge  = node lt p (insert (y / ! / !) rt)
+  ... | inl !  = node (insert (y / ! / !) lt) p rt
+  ... | inr !  = node lt p (insert (y / ! / !) rt)
 
   rotR : forall {i} -> BST i -> BST i
   rotR (node (node lt m mt) p rt)
@@ -90,8 +87,8 @@ module Test1 where
   nat-le (suc x / suc y) = nat-le (x / y)
 
   nat-owoto : (x y : Nat) -> OWOTO nat-le (x / y)
-  nat-owoto zero y = le
-  nat-owoto (suc x) zero = ge
+  nat-owoto zero y = inl !
+  nat-owoto (suc x) zero = inr !
   nat-owoto (suc x) (suc y) = nat-owoto x y
 
   open BinarySearchTreeBest Nat nat-le nat-owoto
