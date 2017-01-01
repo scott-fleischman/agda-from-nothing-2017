@@ -45,7 +45,7 @@ Note that the code in the workshop will only use ASCII so you do not need to use
   * If you only use `-s 5` it will fill the hole with the 5th solution.
 
 
-### Resources
+## Resources
 * [Agda Documentation](http://agda.readthedocs.io/)
 * The old [Agda Wiki](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Documentation) has links to other resources.
 * Book: [Verified Functional Programming in Agda](http://www.amazon.com/Verified-Functional-Programming-Aaron-Stump/dp/1970001240) by Aaron Stump
