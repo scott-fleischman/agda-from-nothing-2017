@@ -52,7 +52,6 @@ infixr 5 _\\_\\_
 
 <$_$>II : forall {P}(L : REL P) -> REL <$ P $>D
 <$ L $>II = <^ L ^>P ^ <^ L ^>P
-pattern <$_$>ii p = ! \\ p \\ !
 
 module BinarySearchTreeBest
   (P : Set)
@@ -68,10 +67,10 @@ module BinarySearchTreeBest
   pattern node lt p rt  = pnode (lt \\ p \\ rt)
 
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
-  insert <$ y $>ii leaf = node leaf y leaf
-  insert <$ y $>ii (node lt p rt)  with owoto y p
-  ... | le  = node (insert <$ y $>ii lt) p rt
-  ... | ge  = node lt p (insert <$ y $>ii rt)
+  insert (! \\ y \\ !) leaf = node leaf y leaf
+  insert (! \\ y \\ !) (node lt p rt)  with owoto y p
+  ... | le  = node (insert (! \\ y \\ !) lt) p rt
+  ... | ge  = node lt p (insert (! \\ y \\ !) rt)
 
   rotR : forall {i} -> BST i -> BST i
   rotR (node (node lt m mt) p rt)
@@ -104,7 +103,7 @@ module Test1 where
   test1 = leaf
 
   test2 : BST (bot / top)
-  test2 = insert (<$ 99 $>ii) leaf
+  test2 = insert (! \\ 99 \\ !) leaf
 
   test2a : BST (bot / top)
   test2a = node leaf 99 leaf
@@ -130,7 +129,7 @@ module Test2 where
   test1 = leaf
 
   test2 : BST (bot / top)
-  test2 = insert (<$ 99 $>ii) leaf
+  test2 = insert (! \\ 99 \\ !) leaf
 
   test2a : BST (bot / top)
   test2a = node leaf 99 leaf
