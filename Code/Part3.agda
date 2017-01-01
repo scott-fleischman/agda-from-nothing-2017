@@ -4,18 +4,8 @@ data Zero : Set where
 record One : Set where
   constructor unit
 
-record Sg (S : Set) (T : S -> Set) : Set where
-  constructor _/_
-  field
-    fst : S
-    snd : T fst
-open Sg
-_*_ : Set -> Set -> Set
-S * T = Sg S \ _ -> T
-infixr 5 _*_ _/_
-
 REL : Set -> Set1
-REL P = P * P -> Set
+REL P = P -> P -> Set
 
 data <$_$>D (P : Set) : Set where
   top  :       <$ P $>D
@@ -23,46 +13,49 @@ data <$_$>D (P : Set) : Set where
   bot  :       <$ P $>D
 
 <$_$>F : forall {P} -> REL P -> REL <$ P $>D
-<$ L $>F (_     / top)   = One
-<$ L $>F (tb x  / tb y)  = L (x / y)
-<$ L $>F (bot   / _)     = One
-<$ L $>F (_     / _)     = Zero
+<$ L $>F _      top     = One
+<$ L $>F (tb x) (tb y)  = L x y
+<$ L $>F bot    _       = One
+<$ L $>F _      _       = Zero
 
-data Total {P} (L : REL P) : (P * P) -> Set where
-  xRy : forall {x y} -> L (x / y) -> Total L (x / y)
-  yRx : forall {x y} -> L (x / y) -> Total L (y / x)
+data Total {P} (L : REL P) : (x y : P) -> Set where
+  xRy : forall {x y} -> L x y -> Total L x y
+  yRx : forall {x y} -> L x y -> Total L y x
 
 module BinarySearchTreeBest
   (P : Set)
   (L : REL P)
-  (total : forall x y -> Total L (x / y))
+  (total : forall x y -> Total L x y)
   where
 
-  data BST (lu : <$ P $>D * <$ P $>D) : Set where
-    leaf : <$ L $>F lu -> BST lu
+  data BST (l u : <$ P $>D) : Set where
+    leaf : <$ L $>F l u -> BST l u
     node : (p : P)
-      -> BST (Sg.fst lu / tb p) * BST (tb p / Sg.snd lu)
-      -> BST lu
+      -> BST l (tb p)
+      -> BST (tb p) u
+      -> BST l u
 
-  insert : {i : <$ P $>D * <$ P $>D}
+  insert : {l u : <$ P $>D}
     -> (p : P)
-    -> <$ L $>F (Sg.fst i / tb p) * <$ L $>F (tb p / Sg.snd i)
-    -> BST i
-    -> BST i
-  insert y (lpf / upf) (leaf pf) = node y (leaf lpf / leaf upf)
-  insert y (lpf / upf) (node p (lt / rt)) with total y p
-  ... | xRy pf = node p (insert y (lpf / pf) lt / rt)
-  ... | yRx pf = node p (lt / insert y (pf / upf) rt)
+    -> <$ L $>F l (tb p)
+    -> <$ L $>F (tb p) u
+    -> BST l u
+    -> BST l u
+  insert y lpf upf (leaf pf) = node y (leaf lpf) (leaf upf)
+  insert y lpf upf (node p lt rt) with total y p
+  ... | xRy pf = node p (insert y lpf pf lt) rt
+  ... | yRx pf = node p lt (insert y pf upf rt)
 
-  rotR : forall {i} -> BST i -> BST i
-  rotR (node p (node m (lt / mt) / rt)) = node m (lt / node p (mt / rt))
+  rotR : forall {l u} -> BST l u -> BST l u
+  rotR (node p (node m lt mt) rt) = node m lt (node p mt rt)
   rotR t = t
 
-  data OList (lu : <$ P $>D * <$ P $>D) : Set where
-    nil : <$ L $>F lu -> OList lu
+  data OList (l u : <$ P $>D) : Set where
+    nil : <$ L $>F l u -> OList l u
     cons : (p : P)
-      -> <$ L $>F (Sg.fst lu / tb p) * OList (tb p / Sg.snd lu)
-      -> OList lu 
+      -> <$ L $>F l (tb p)
+      -> OList (tb p) u
+      -> OList l u 
 
 data Nat : Set where
   zero : Nat
@@ -70,12 +63,12 @@ data Nat : Set where
 {-# BUILTIN NATURAL Nat #-}
 
 module Test1 where
-  nat-le : Nat * Nat -> Set
-  nat-le (zero / y) = One
-  nat-le (suc x / zero) = Zero
-  nat-le (suc x / suc y) = nat-le (x / y)
+  nat-le : (x y : Nat) -> Set
+  nat-le zero y = One
+  nat-le (suc x) zero = Zero
+  nat-le (suc x) (suc y) = nat-le x y
 
-  nat-owoto : (x y : Nat) -> Total nat-le (x / y)
+  nat-owoto : (x y : Nat) -> Total nat-le x y
   nat-owoto zero y = xRy unit
   nat-owoto (suc x) zero = yRx unit
   nat-owoto (suc x) (suc y) with nat-owoto x y
@@ -84,24 +77,24 @@ module Test1 where
 
   open BinarySearchTreeBest Nat nat-le nat-owoto
 
-  test1 : BST (bot / top)
+  test1 : BST bot top
   test1 = leaf unit
 
-  test2 : BST (bot / top)
-  test2 = insert 99 (unit / unit) (leaf unit)
+  test2 : BST bot top
+  test2 = insert 99 unit unit (leaf unit)
 
-  test2a : BST (bot / top)
-  test2a = node 99 (leaf unit / leaf unit)
+  test2a : BST bot top
+  test2a = node 99 (leaf unit) (leaf unit)
 
-  test3 : BST (bot / top)
-  test3 = node 101 (node 99 (leaf unit / leaf unit) / leaf unit) -- a number less than 99 will not type check
+  test3 : BST bot top
+  test3 = node 101 (node 99 (leaf unit) (leaf unit)) (leaf unit) -- a number less than 99 will not type check
 
 module Test2 where
-  data Nat<= : Nat * Nat -> Set where
-    zero<= : (m : Nat) -> Nat<= (zero / m)
-    suc<=suc : (n m : Nat) -> Nat<= (n / m) -> Nat<= (suc n / suc m)
+  data Nat<= : (n m : Nat) -> Set where
+    zero<= : (m : Nat) -> Nat<= zero m
+    suc<=suc : (n m : Nat) -> Nat<= n m -> Nat<= (suc n) (suc m)
 
-  nat-owoto : (x y : Nat) -> Total Nat<= (x / y)
+  nat-owoto : (x y : Nat) -> Total Nat<= x y
   nat-owoto zero y = xRy (zero<= y)
   nat-owoto x@(suc _) zero = yRx (zero<= x)
   nat-owoto (suc x) (suc y) with nat-owoto x y
@@ -110,17 +103,17 @@ module Test2 where
 
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
-  test1 : BST (bot / top)
+  test1 : BST bot top
   test1 = leaf unit
 
-  test2 : BST (bot / top)
-  test2 = insert 99 (unit / unit) (leaf unit)
+  test2 : BST bot top
+  test2 = insert 99 unit unit (leaf unit)
 
-  test2a : BST (bot / top)
-  test2a = node 99 (leaf unit / leaf unit)
+  test2a : BST bot top
+  test2a = node 99 (leaf unit) (leaf unit)
 
-  3<=5 : Nat<= (3 / 5)
+  3<=5 : Nat<= 3 5
   3<=5 = suc<=suc 2 4 (suc<=suc 1 3 (suc<=suc zero 2 (zero<= 2)))
 
-  test3 : BST (bot / top)
-  test3 = node 5 (node 3 (leaf unit / leaf 3<=5) / leaf unit)
+  test3 : BST bot top
+  test3 = node 5 (node 3 (leaf unit) (leaf 3<=5)) (leaf unit)
