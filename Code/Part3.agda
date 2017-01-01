@@ -56,9 +56,6 @@ infixr 3 _-+-_
 infixr 4 _-*-_
 infixr 2 _>>_
 
-[_] : {I : Set} -> (I -> Set) -> Set
-[ F ] = forall {i} -> F i
-
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
 
@@ -82,13 +79,13 @@ module BinarySearchTreeBest
   pattern leaf          = pleaf !
   pattern node lt p rt  = pnode (lt \\ p \\ rt)
 
-  insert :  [ <$ L $>II >> BST >> BST ]
+  insert : forall {i} -> (<$ L $>II >> BST >> BST) i
   insert <$ y $>ii leaf = node leaf y leaf
   insert <$ y $>ii (node lt p rt)  with owoto y p
   ... | le  = node (insert <$ y $>ii lt) p rt
   ... | ge  = node lt p (insert <$ y $>ii rt)
 
-  rotR : [ BST >> BST ]
+  rotR : forall {i} -> (BST >> BST) i
   rotR (node (node lt m mt) p rt)
      = node lt m (node mt p rt)
   rotR t = t
