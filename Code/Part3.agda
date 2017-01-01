@@ -28,13 +28,9 @@ data <$_$>D (P : Set) : Set where
 <$ L $>F (bot   / _)     = One
 <$ L $>F (_     / _)     = Zero
 
-data _+_ (S T : Set) :  Set where
-  inl : S -> S + T
-  inr : T -> S + T
-infixr 4 _+_
-
-OWOTO : forall {P}(L : REL P) -> REL P
-OWOTO L (x / y) = L (x / y) + L (y / x)
+data Total {P} (L : REL P) : (P * P) -> Set where
+  xRy : forall {x y} -> L (x / y) -> Total L (x / y)
+  yRx : forall {x y} -> L (x / y) -> Total L (y / x)
 
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
@@ -45,7 +41,7 @@ _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
 module BinarySearchTreeBest
   (P : Set)
   (L : REL P)
-  (owoto : forall x y -> OWOTO L (x / y))
+  (owoto : forall x y -> Total L (x / y))
   where
 
   data BST (lu : <$ P $>D * <$ P $>D) : Set where
@@ -55,8 +51,8 @@ module BinarySearchTreeBest
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
   insert (y / lpf / upf) (leaf pf) = node (y / leaf lpf / leaf upf)
   insert (y / lpf / upf) (node (p / lt / rt))  with owoto y p
-  ... | inl pf = node (p / insert (y / lpf / pf) lt / rt)
-  ... | inr pf  = node (p / lt / insert (y / pf / upf) rt)
+  ... | xRy pf = node (p / insert (y / lpf / pf) lt / rt)
+  ... | yRx pf  = node (p / lt / insert (y / pf / upf) rt)
 
   rotR : forall {i} -> BST i -> BST i
   rotR (node (p / node (m / lt / mt) / rt))
@@ -78,10 +74,12 @@ module Test1 where
   nat-le (suc x / zero) = Zero
   nat-le (suc x / suc y) = nat-le (x / y)
 
-  nat-owoto : (x y : Nat) -> OWOTO nat-le (x / y)
-  nat-owoto zero y = inl unit
-  nat-owoto (suc x) zero = inr unit
-  nat-owoto (suc x) (suc y) = nat-owoto x y
+  nat-owoto : (x y : Nat) -> Total nat-le (x / y)
+  nat-owoto zero y = xRy unit
+  nat-owoto (suc x) zero = yRx unit
+  nat-owoto (suc x) (suc y) with nat-owoto x y
+  nat-owoto (suc x) (suc y) | xRy prf = xRy prf
+  nat-owoto (suc x) (suc y) | yRx prf = yRx prf
 
   open BinarySearchTreeBest Nat nat-le nat-owoto
 
@@ -102,12 +100,12 @@ module Test2 where
     zero<= : (m : Nat) -> Nat<= (zero / m)
     suc<=suc : (n m : Nat) -> Nat<= (n / m) -> Nat<= (suc n / suc m)
 
-  nat-owoto : (x y : Nat) -> OWOTO Nat<= (x / y)
-  nat-owoto zero y = inl (zero<= y)
-  nat-owoto x@(suc _) zero = inr (zero<= x)
+  nat-owoto : (x y : Nat) -> Total Nat<= (x / y)
+  nat-owoto zero y = xRy (zero<= y)
+  nat-owoto x@(suc _) zero = yRx (zero<= x)
   nat-owoto (suc x) (suc y) with nat-owoto x y
-  nat-owoto (suc x) (suc y) | inl prf = inl (suc<=suc x y prf)
-  nat-owoto (suc x) (suc y) | inr prf = inr (suc<=suc y x prf)
+  nat-owoto (suc x) (suc y) | xRy prf = xRy (suc<=suc x y prf)
+  nat-owoto (suc x) (suc y) | yRx prf = yRx (suc<=suc y x prf)
 
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
