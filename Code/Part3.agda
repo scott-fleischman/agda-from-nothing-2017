@@ -26,12 +26,11 @@ data <$_$>D (P : Set) : Set where
   tb   : P ->  <$ P $>D
   bot  :       <$ P $>D
 
-<$_$>F <^_^>P : forall {P} -> REL P -> REL <$ P $>D
+<$_$>F : forall {P} -> REL P -> REL <$ P $>D
 <$ L $>F (_     / top)   = One
 <$ L $>F (tb x  / tb y)  = L (x / y)
 <$ L $>F (bot   / _)     = One
 <$ L $>F (_     / _)     = Zero
-<^ L ^>P xy = <P <$ L $>F xy P>
 
 data _+_ (S T : Set) :  Set where
   inl : S -> S + T
@@ -45,7 +44,7 @@ _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
 
 <$_$>II : forall {P}(L : REL P) -> REL <$ P $>D
-<$ L $>II = <^ L ^>P ^ <^ L ^>P
+<$ L $>II = <$ L $>F ^ <$ L $>F
 
 module BinarySearchTreeBest
   (P : Set)
@@ -58,10 +57,10 @@ module BinarySearchTreeBest
     node : (BST ^ BST) lu -> BST lu
 
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
-  insert (y / ! {{lpf}} / ! {{upf}}) (leaf pf) = node (y / leaf lpf / leaf upf)
-  insert (y / ! / !) (node (p / lt / rt))  with owoto y p
-  ... | inl !  = node (p / insert (y / ! / !) lt / rt)
-  ... | inr !  = node (p / lt / insert (y / ! / !) rt)
+  insert (y / lpf / upf) (leaf pf) = node (y / leaf lpf / leaf upf)
+  insert (y / lpf / upf) (node (p / lt / rt))  with owoto y p
+  ... | inl (! {{pf}}) = node (p / insert (y / lpf / pf) lt / rt)
+  ... | inr (! {{pf}})  = node (p / lt / insert (y / pf / upf) rt)
 
   rotR : forall {i} -> BST i -> BST i
   rotR (node (p / node (m / lt / mt) / rt))
@@ -69,8 +68,8 @@ module BinarySearchTreeBest
   rotR t = t
 
   data OList (lu : <$ P $>D * <$ P $>D) : Set where
-    nil   :  <^ L ^>P lu -> OList lu
-    cons  :  (<^ L ^>P ^ OList) lu -> OList lu 
+    nil   :  <$ L $>F lu -> OList lu
+    cons  :  (<$ L $>F ^ OList) lu -> OList lu 
 
 data Nat : Set where
   zero : Nat
@@ -94,7 +93,7 @@ module Test1 where
   test1 = leaf unit
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) (leaf unit)
+  test2 = insert (99 / unit / unit) (leaf unit)
 
   test2a : BST (bot / top)
   test2a = node (99 / leaf unit / leaf unit)
@@ -120,7 +119,7 @@ module Test2 where
   test1 = leaf unit
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) (leaf unit)
+  test2 = insert (99 / unit / unit) (leaf unit)
 
   test2a : BST (bot / top)
   test2a = node (99 / leaf unit / leaf unit)
