@@ -54,11 +54,11 @@ module BinarySearchTreeBest
   where
 
   data BST (lu : <$ P $>D * <$ P $>D) : Set where
-    leaf : <^ L ^>P lu -> BST lu
+    leaf : <$ L $>F lu -> BST lu
     node : (BST ^ BST) lu -> BST lu
 
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
-  insert (y / ! / !) (leaf !) = node (y / leaf ! / leaf !)
+  insert (y / ! {{lpf}} / ! {{upf}}) (leaf pf) = node (y / leaf lpf / leaf upf)
   insert (y / ! / !) (node (p / lt / rt))  with owoto y p
   ... | inl !  = node (p / insert (y / ! / !) lt / rt)
   ... | inr !  = node (p / lt / insert (y / ! / !) rt)
@@ -91,16 +91,16 @@ module Test1 where
   open BinarySearchTreeBest Nat nat-le nat-owoto
 
   test1 : BST (bot / top)
-  test1 = leaf !
+  test1 = leaf unit
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) (leaf !)
+  test2 = insert (99 / ! / !) (leaf unit)
 
   test2a : BST (bot / top)
-  test2a = node (99 / leaf ! / leaf !)
+  test2a = node (99 / leaf unit / leaf unit)
 
   test3 : BST (bot / top)
-  test3 = node (101 / node (99 / leaf ! / leaf !) / leaf !) -- a number less than 99 will not type check
+  test3 = node (101 / node (99 / leaf unit / leaf unit) / leaf unit) -- a number less than 99 will not type check
 
 module Test2 where
   data Nat<= : Nat * Nat -> Set where
@@ -117,13 +117,13 @@ module Test2 where
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
   test1 : BST (bot / top)
-  test1 = leaf !
+  test1 = leaf unit
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) (leaf !)
+  test2 = insert (99 / ! / !) (leaf unit)
 
   test2a : BST (bot / top)
-  test2a = node (99 / leaf ! / leaf !)
+  test2a = node (99 / leaf unit / leaf unit)
 
   3<=5 : Nat<= (3 / 5)
   3<=5 = suc<=suc (suc (suc zero)) (suc (suc (suc (suc zero))))
@@ -131,4 +131,4 @@ module Test2 where
             (suc<=suc zero (suc (suc zero)) (zero<= (suc (suc zero)))))
 
   test3 : BST (bot / top)
-  test3 = node (5 / node (3 / leaf ! / leaf (! {{3<=5}})) / leaf !)
+  test3 = node (5 / node (3 / leaf unit / leaf 3<=5) / leaf unit)
