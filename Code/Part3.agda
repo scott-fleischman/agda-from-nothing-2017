@@ -44,16 +44,6 @@ OWOTO L (x / y) = <P L (x / y) P> + <P L (y / x) P>
 pattern le  = inl !
 pattern ge  = inr !
 
-_-+-_ _-*-_
-  : {I : Set}
-  -> (I -> Set)
-  -> (I -> Set)
-  -> I -> Set
-(S -+- T)  i = S i + T i
-(S -*- T)  i = S i * T i
-infixr 3 _-+-_
-infixr 4 _-*-_
-
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
 
