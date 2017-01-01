@@ -54,21 +54,18 @@ module BinarySearchTreeBest
   where
 
   data BST (lu : <$ P $>D * <$ P $>D) : Set where
-    pleaf  :  <^ L ^>P lu -> BST lu
-    pnode  :  (BST ^ BST) lu -> BST lu
-
-  pattern leaf          = pleaf !
-  pattern node lt p rt  = pnode (p / lt / rt)
+    pleaf : <^ L ^>P lu -> BST lu
+    pnode : (BST ^ BST) lu -> BST lu
 
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
-  insert (y / ! / !) leaf = node leaf y leaf
-  insert (y / ! / !) (node lt p rt)  with owoto y p
-  ... | inl !  = node (insert (y / ! / !) lt) p rt
-  ... | inr !  = node lt p (insert (y / ! / !) rt)
+  insert (y / ! / !) (pleaf !) = pnode (y / pleaf ! / pleaf !)
+  insert (y / ! / !) (pnode (p / lt / rt))  with owoto y p
+  ... | inl !  = pnode (p / insert (y / ! / !) lt / rt)
+  ... | inr !  = pnode (p / lt / insert (y / ! / !) rt)
 
   rotR : forall {i} -> BST i -> BST i
-  rotR (node (node lt m mt) p rt)
-     = node lt m (node mt p rt)
+  rotR (pnode (p / pnode (m / lt / mt) / rt))
+     = pnode (m / lt / pnode (p / mt / rt))
   rotR t = t
 
   data OList (lu : <$ P $>D * <$ P $>D) : Set where
@@ -94,16 +91,16 @@ module Test1 where
   open BinarySearchTreeBest Nat nat-le nat-owoto
 
   test1 : BST (bot / top)
-  test1 = leaf
+  test1 = pleaf !
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) leaf
+  test2 = insert (99 / ! / !) (pleaf !)
 
   test2a : BST (bot / top)
-  test2a = node leaf 99 leaf
+  test2a = pnode (99 / pleaf ! / pleaf !)
 
   test3 : BST (bot / top)
-  test3 = node (node leaf 99 leaf) 101 leaf -- a number less than 99 will not type check
+  test3 = pnode (101 / pnode (99 / pleaf ! / pleaf !) / pleaf !) -- a number less than 99 will not type check
 
 module Test2 where
   data Nat<= : Nat * Nat -> Set where
@@ -120,13 +117,13 @@ module Test2 where
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
   test1 : BST (bot / top)
-  test1 = leaf
+  test1 = pleaf !
 
   test2 : BST (bot / top)
-  test2 = insert (99 / ! / !) leaf
+  test2 = insert (99 / ! / !) (pleaf !)
 
   test2a : BST (bot / top)
-  test2a = node leaf 99 leaf
+  test2a = pnode (99 / pleaf ! / pleaf !)
 
   3<=5 : Nat<= (3 / 5)
   3<=5 = suc<=suc (suc (suc zero)) (suc (suc (suc (suc zero))))
@@ -134,4 +131,4 @@ module Test2 where
             (suc<=suc zero (suc (suc zero)) (zero<= (suc (suc zero)))))
 
   test3 : BST (bot / top)
-  test3 = node (node leaf 3 (pleaf (! {{3<=5}}))) 5 leaf
+  test3 = pnode (5 / pnode (3 / pleaf ! / pleaf (! {{3<=5}})) / pleaf !)
