@@ -44,17 +44,15 @@ OWOTO L (x / y) = <P L (x / y) P> + <P L (y / x) P>
 pattern le  = inl !
 pattern ge  = inr !
 
-_-+-_ _-*-_ _>>_
+_-+-_ _-*-_
   : {I : Set}
   -> (I -> Set)
   -> (I -> Set)
   -> I -> Set
 (S -+- T)  i = S i + T i
 (S -*- T)  i = S i * T i
-(S >> T)   i = S i -> T i
 infixr 3 _-+-_
 infixr 4 _-*-_
-infixr 2 _>>_
 
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
@@ -73,26 +71,26 @@ module BinarySearchTreeBest
   where
 
   data BST (lu : <$ P $>D * <$ P $>D) : Set where
-    pleaf  :  (<^ L ^>P >> BST) lu
-    pnode  :  (BST ^ BST >> BST) lu
+    pleaf  :  <^ L ^>P lu -> BST lu
+    pnode  :  (BST ^ BST) lu -> BST lu
 
   pattern leaf          = pleaf !
   pattern node lt p rt  = pnode (lt \\ p \\ rt)
 
-  insert : forall {i} -> (<$ L $>II >> BST >> BST) i
+  insert : forall {i} -> <$ L $>II i -> BST i -> BST i
   insert <$ y $>ii leaf = node leaf y leaf
   insert <$ y $>ii (node lt p rt)  with owoto y p
   ... | le  = node (insert <$ y $>ii lt) p rt
   ... | ge  = node lt p (insert <$ y $>ii rt)
 
-  rotR : forall {i} -> (BST >> BST) i
+  rotR : forall {i} -> BST i -> BST i
   rotR (node (node lt m mt) p rt)
      = node lt m (node mt p rt)
   rotR t = t
 
   data OList (lu : <$ P $>D * <$ P $>D) : Set where
-    nil   :  (<^ L ^>P >> OList) lu
-    cons  :  (<^ L ^>P ^ OList >> OList) lu 
+    nil   :  <^ L ^>P lu -> OList lu
+    cons  :  (<^ L ^>P ^ OList) lu -> OList lu 
 
 data Nat : Set where
   zero : Nat
