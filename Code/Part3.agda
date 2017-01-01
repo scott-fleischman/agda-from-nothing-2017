@@ -4,10 +4,6 @@ data Zero : Set where
 record One : Set where
   constructor unit
 
-record <P_P> (P : Set) : Set where
-  constructor !
-  field {{prf}} : P
-
 record Sg (S : Set) (T : S -> Set) : Set where
   constructor _/_
   field
@@ -38,7 +34,7 @@ data _+_ (S T : Set) :  Set where
 infixr 4 _+_
 
 OWOTO : forall {P}(L : REL P) -> REL P
-OWOTO L (x / y) = <P L (x / y) P> + <P L (y / x) P>
+OWOTO L (x / y) = L (x / y) + L (y / x)
 
 _^_ : forall {P} -> REL <$ P $>D -> REL <$ P $>D -> REL <$ P $>D
 _^_ {P} S T (l / u) = Sg P \ p -> S (l / tb p) * T (tb p / u)
@@ -59,8 +55,8 @@ module BinarySearchTreeBest
   insert : forall {i} -> <$ L $>II i -> BST i -> BST i
   insert (y / lpf / upf) (leaf pf) = node (y / leaf lpf / leaf upf)
   insert (y / lpf / upf) (node (p / lt / rt))  with owoto y p
-  ... | inl (! {{pf}}) = node (p / insert (y / lpf / pf) lt / rt)
-  ... | inr (! {{pf}})  = node (p / lt / insert (y / pf / upf) rt)
+  ... | inl pf = node (p / insert (y / lpf / pf) lt / rt)
+  ... | inr pf  = node (p / lt / insert (y / pf / upf) rt)
 
   rotR : forall {i} -> BST i -> BST i
   rotR (node (p / node (m / lt / mt) / rt))
@@ -83,8 +79,8 @@ module Test1 where
   nat-le (suc x / suc y) = nat-le (x / y)
 
   nat-owoto : (x y : Nat) -> OWOTO nat-le (x / y)
-  nat-owoto zero y = inl !
-  nat-owoto (suc x) zero = inr !
+  nat-owoto zero y = inl unit
+  nat-owoto (suc x) zero = inr unit
   nat-owoto (suc x) (suc y) = nat-owoto x y
 
   open BinarySearchTreeBest Nat nat-le nat-owoto
@@ -107,11 +103,11 @@ module Test2 where
     suc<=suc : (n m : Nat) -> Nat<= (n / m) -> Nat<= (suc n / suc m)
 
   nat-owoto : (x y : Nat) -> OWOTO Nat<= (x / y)
-  nat-owoto zero y = inl (! {{zero<= y}})
-  nat-owoto x@(suc _) zero = inr (! {{zero<= x}})
+  nat-owoto zero y = inl (zero<= y)
+  nat-owoto x@(suc _) zero = inr (zero<= x)
   nat-owoto (suc x) (suc y) with nat-owoto x y
-  nat-owoto (suc x) (suc y) | inl (! {{prf}}) = inl (! {{suc<=suc x y prf}})
-  nat-owoto (suc x) (suc y) | inr (! {{prf}}) = inr (! {{suc<=suc y x prf}})
+  nat-owoto (suc x) (suc y) | inl prf = inl (suc<=suc x y prf)
+  nat-owoto (suc x) (suc y) | inr prf = inr (suc<=suc y x prf)
 
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
