@@ -12,7 +12,7 @@ data ExtendRel (P : Set) (R : P -> P -> Set) : (l r : Extend P) -> Set where
 
 data Total (P : Set) (R : P -> P -> Set) : (x y : P) -> Set where
   xRy : (x y : P) -> R x y -> Total P R x y
-  yRx : (x y : P) -> R x y -> Total P R y x
+  yRx : (x y : P) -> R y x -> Total P R x y
 
 module BinarySearchTree
   (P : Set)
@@ -40,7 +40,7 @@ module BinarySearchTree
   insert l u p lpf upf (leaf pf) = node p (leaf lpf) (leaf upf)
   insert l u p lpf upf (node np lt rt) with total p np
   insert l u p lpf upf (node np lt rt) | xRy .p .np pf = node np (insert l (value np) p lpf (relation p np pf) lt) rt
-  insert l u p lpf upf (node np lt rt) | yRx .np .p pf = node np lt (insert (value np) u p (relation np p pf) upf rt)
+  insert l u p lpf upf (node np lt rt) | yRx .p .np pf = node np lt (insert (value np) u p (relation np p pf) upf rt)
 
   rotR : (l u : Extend P) -> BST l u -> BST l u
   rotR l u (node p (node m lt mt) rt) = node m lt (node p mt rt)
@@ -73,10 +73,10 @@ module Test1 where
 
   nat-total : (n m : Nat) -> Total Nat nat-le n m
   nat-total zero m = xRy zero m unit
-  nat-total (suc n) zero = yRx zero (suc n) unit
+  nat-total (suc n) zero = yRx (suc n) zero unit
   nat-total (suc n) (suc m) with nat-total n m
   nat-total (suc n) (suc m) | xRy .n .m pf = xRy (suc n) (suc m) pf
-  nat-total (suc n) (suc m) | yRx .m .n pf = yRx (suc m) (suc n) pf
+  nat-total (suc n) (suc m) | yRx .n .m pf = yRx (suc n) (suc m) pf
 
   open BinarySearchTree Nat nat-le nat-total
 
@@ -99,10 +99,10 @@ module Test2 where
 
   nat-total : (x y : Nat) -> Total Nat Nat<= x y
   nat-total zero y = xRy zero y (zero<= y)
-  nat-total (suc x) zero = yRx zero (suc x) (zero<= (suc x))
+  nat-total (suc x) zero = yRx (suc x) zero (zero<= (suc x))
   nat-total (suc x) (suc y) with nat-total x y
   nat-total (suc x) (suc y) | xRy .x .y pf = xRy (suc x) (suc y) (suc<=suc x y pf)
-  nat-total (suc x) (suc y) | yRx .y .x pf = yRx (suc y) (suc x) (suc<=suc y x pf)
+  nat-total (suc x) (suc y) | yRx .x .y pf = yRx (suc x) (suc y) (suc<=suc y x pf)
 
   open BinarySearchTree Nat Nat<= nat-total
 
