@@ -4,27 +4,27 @@ data Zero : Set where
 record One : Set where
   constructor unit
 
-REL : Set -> Set1
-REL P = P -> P -> Set
+Relation : Set -> Set1
+Relation P = P -> P -> Set
 
 data Extend (P : Set) : Set where
   top  :      Extend P
   tb   : P -> Extend P
   bot  :      Extend P
 
-<$_$>F : {P : Set} -> REL P -> REL (Extend P)
+<$_$>F : {P : Set} -> Relation P -> Relation (Extend P)
 <$ L $>F _      top     = One
 <$ L $>F (tb x) (tb y)  = L x y
 <$ L $>F bot    _       = One
 <$ L $>F _      _       = Zero
 
-data Total {P} (L : REL P) : (x y : P) -> Set where
+data Total {P} (L : Relation P) : (x y : P) -> Set where
   xRy : {x y : P} -> L x y -> Total L x y
   yRx : {x y : P} -> L x y -> Total L y x
 
 module BinarySearchTreeBest
   (P : Set)
-  (L : REL P)
+  (L : Relation P)
   (total : (x y : P) -> Total L x y)
   where
 
