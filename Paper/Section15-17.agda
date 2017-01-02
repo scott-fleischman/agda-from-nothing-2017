@@ -1,4 +1,6 @@
-module Section15-16 where
+module Section15-17 where
+
+-- Prolegomena
 
 data Zero : Set where                  -- no constructors!
 record One : Set where constructor it  -- no fields!
@@ -10,6 +12,12 @@ record <P_P> (P : Set) : Set where
 _=>_ : Set -> Set -> Set
 P => T = {{p : P}} -> T
 infixr 3 _=>_
+
+_:-_ : forall {P T} -> <P P P> -> (P => T) -> T
+! :- t = t
+
+magic :  {X : Set} -> Zero => X
+magic {{()}}
 
 id : {A : Set} -> A -> A
 id a = a
@@ -158,6 +166,9 @@ foldr : forall {F A B}
   -> B
 foldr f b t = crush compMon f t b
 
+
+-- Section 15
+
 data IO (I : Set) : Set where
   qR         : I -> IO I
   q0 q1      : IO I
@@ -291,3 +302,94 @@ module Tree23
 
   sort : forall {F} -> MuJJ F P -> <$ L $>i+ (bot / top)
   sort = flattenIO o snd o foldr insert2 (ze / no0)
+
+
+-- Section 17
+
+  data _==_ {X : Set}(x : X) : X -> Set where
+    it : x == x
+  infix 6 _==_
+
+  module Delete23
+    (trans : forall {x} y {z} -> L (x / y) => L (y / z) => <P L (x / z) P>)
+    (eq? : (x y : P) -> x == y + (x == y -> Zero))
+    where
+
+    transTB : [ (<^ L ^>P ^ <^ L ^>P) >> <^ L ^>P ]
+    transTB {_     / top}   _         = !
+    transTB {bot   / bot}   _         = !
+    transTB {bot   / tb u}  _         = !
+    transTB {top   / _}     (via _)   = magic
+    transTB {tb l  / tb u}  (via p)   = trans p :- !
+    transTB {tb l  / bot}   (via _)   = magic
+
+    Del23 Short23 : Nat -> REL <$ P $>D
+    Del23    h      lu  =  Short23 h lu + <$ L $>23 h lu
+    Short23  ze     lu  =  Zero
+    Short23  (su h) lu  =  <$ L $>23 h lu
+
+    Re2 :  Nat -> REL <$ P $>D
+    Re2 h =  Short23 (su h) -+- (<$ L $>23 h ^ <$ L $>23 h)
+
+    d2t :  forall {h} -> [ (Del23 h ^ <$ L $>23 h) >> Re2 h ]
+    d2t {h}     (inr lp  \\ p \\ pu)           = inr (lp \\ p \\ pu)
+    d2t {ze}    (inl ()  \\ p \\ pu)
+    d2t {su h}  (inl lp  \\ p \\ no2 pq q qu)  = inl (no3 lp p pq q qu)
+    d2t {su h}  (inl lp  \\ p \\ no3 pq q qr r ru)
+      = inr (no2 lp p pq \\ q \\ no2 qr r ru)
+
+    t2d :  forall {h} -> [ (<$ L $>23 h ^ Del23 h) >> Re2 h ]
+    t2d {h}     (lp \\ p \\ inr pu)           = inr (lp \\ p \\ pu)
+    t2d {ze}    (lp \\ p \\ inl ())
+    t2d {su h}  (no2 ln n np \\ p \\ inl pu)  = inl (no3 ln n np p pu)
+    t2d {su h}  (no3 lm m mn n np  \\ p \\ inl pu)
+      = inr (no2 lm m mn \\ n \\ no2 np p pu)
+
+    rd : forall {h} -> [ Re2 h >> Del23 (su h) ]
+    rd (inl s)                = (inl s)
+    rd (inr (lp \\ p \\ pu))  = inr (no2 lp p pu)
+
+    r3t :  forall {h} -> [ (Re2 h ^ <$ L $>23 h) >> Del23 (su h) ]
+    r3t (inr (lm \\ m \\ mp) \\ p \\ pu)    = inr (no3 lm m mp p pu)
+    r3t (inl lp \\ p \\ pu)                 = inr (no2 lp p pu)
+
+    t3r :  forall {h} -> [ (<$ L $>23 h ^ Re2 h) >> Del23 (su h) ]
+    t3r (lp \\ p \\ inr (pq \\ q \\ qu))    = inr (no3 lp p pq q qu)
+    t3r (lp \\ p \\ inl pu)                 = inr (no2 lp p pu)
+
+    extr : forall {h} -> [ <$ L $>23 (su h) >> (Del23 (su h) ^ <^ L ^>P) ]
+    extr {ze} (no2 lr r no0)        = inl lr -\ r
+    extr {ze} (no3 lp p pr r no0)   = inr (no2 lp p pr) -\ r
+    extr {su h} (no2 lp p pu)       with extr pu
+    ... | pr -\ r = rd (t2d (lp \\ p \\ pr)) -\ r
+    extr {su h} (no3 lp p pq q qu)  with extr qu
+    ... | qr -\ r = t3r (lp \\ p \\ t2d (pq \\ q \\ qr)) -\ r
+
+    delp : forall {h} -> [ (<$ L $>23 h ^ <$ L $>23 h) >> Re2 h ]
+    delp {ze}    {lu}  (no0 \\ p \\ no0) = transTB {lu} (via p) :- inl no0
+    delp {su h}        (lp \\ p \\ pu) with extr lp
+    ... | lr -\ r = d2t (lr \\ r \\ weak pu) where
+      weak : forall {h u} -> <$ L $>23 h (tb p / u) -> <$ L $>23 h (tb r / u)
+      weak {ze} {u}  no0 = transTB {tb r / u} (via p) :- no0
+      weak {su h} la pq \\ q \\ qu ra = la weak pq \\ q \\ qu ra
+
+    del23 : forall {h} -> [ <$ L $>iI >> <$ L $>23 h >> Del23 h ]
+    del23 {ze}   _           no0                  = inr no0
+    del23 {su h} <$ y $>io   la lp \\ p \\ pu ra  with eq? y p
+    del23 {su h} <$ .p $>io  (no2 lp p pu)        | inl it
+      = rd (delp (lp \\ p \\ pu))
+    del23 {su h} <$ .p $>io  (no3 lp p pq q qu)   | inl it
+      = r3t (delp (lp \\ p \\ pq) \\ q \\ qu)
+    del23 {su h} <$ y $>io   la lp \\ p \\ pu ra  | inr _ with owoto y p
+    del23 {su h} <$ y $>io   (no2 lp p pu)        | inr _ | le
+      = rd (d2t (del23 <$ y $>io lp \\ p \\ pu))
+    del23 {su h} <$ y $>io   (no2 lp p pu)        | inr _ | ge
+      = rd (t2d (lp \\ p \\ del23 <$ y $>io pu))
+    del23 {su h} <$ y $>io   (no3 lp p pq q qu)   | inr _ | le
+      = r3t (d2t (del23 <$ y $>io lp \\ p \\ pq) \\ q \\ qu)
+    del23 {su h} <$ y $>io   (no3 lp p pq q qu)   | inr _ | ge with eq? y q
+    del23 {su h} <$ .q $>io  (no3 lp p pq q qu)   | inr _ | ge | inl it
+      = t3r (lp \\ p \\ delp (pq \\ q \\ qu))
+    ... | inr _ with owoto y q
+    ... | le = r3t (t2d (lp \\ p \\ del23 <$ y $>io pq) \\ q \\ qu)
+    ... | ge = t3r (lp \\ p \\ t2d (pq \\ q \\ del23 <$ y $>io qu))
