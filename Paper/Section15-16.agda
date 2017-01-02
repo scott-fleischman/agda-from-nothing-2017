@@ -266,21 +266,21 @@ module Tree23
     -> <$ L $>23 h lu
     -> <$ L $>23 h lu
       + Sg P \ p -> <$ L $>23 h (fst lu / tb p) * <$ L $>23 h (tb p / snd lu)
-  ins23 ze      <$ y $>io no0 = inr (la ! ra \\ y \\ la ! ra)
-  ins23 (su h)  <$ y $>io la lt \\ p \\ rest ra with owoto y p
-  ins23 (su h)  <$ y $>io la lt \\ p \\ rest ra | le with ins23 h <$ y $>io lt
-  ins23 (su h)  <$ y $>io la lt \\ p \\ rest ra | le | inl lt'                = inl la lt' \\ p \\ rest ra
-  ins23 (su h)  <$ y $>io (no2 lt p rt)         | le | inr (llt \\ r \\ lrt)  = inl (no3 llt r lrt p rt)
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt)    | le | inr (llt \\ r \\ lrt)  = inr (no2 llt r lrt \\ p \\ no2 mt q rt)
-  ins23 (su h)  <$ y $>io (no2 lt p rt) | ge with ins23 h <$ y $>io rt
-  ins23 (su h)  <$ y $>io (no2 lt p rt) | ge | rt' = inl la lt \\ p \\ rt' ra
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge with owoto y q
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | le with ins23 h <$ y $>io mt
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | le | inl mt'                = inl (no3 lt p mt' q rt)
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | le | inr (mlt \\ r \\ mrt)  = inr (no2 lt p mlt \\ r \\ no2 mrt q rt)
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | ge with ins23 h <$ y $>io rt
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | ge | inl rt'                = inl (no3 lt p mt q rt')
-  ins23 (su h)  <$ y $>io (no3 lt p mt q rt) | ge | ge | inr (rlt \\ r \\ rrt)  = inr (no2 lt p mt \\ q \\ no2 rlt r rrt)
+  ins23 ze     <$ y $>io no0 = inr (la ! ra \\ y \\ la ! ra)
+  ins23 (su h) <$ y $>io la lt \\ p \\ rest ra with owoto y p
+  ins23 (su h) <$ y $>io la lt \\ p \\ rest ra | le with ins23 h <$ y $>io lt
+  ins23 (su h) <$ y $>io la lt \\ p \\ rest ra | le | inl lt'                = inl la lt' \\ p \\ rest ra
+  ins23 (su h) <$ y $>io (no2 lt p rt)         | le | inr (llt \\ r \\ lrt)  = inl (no3 llt r lrt p rt)
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt)    | le | inr (llt \\ r \\ lrt)  = inr (no2 llt r lrt \\ p \\ no2 mt q rt)
+  ins23 (su h) <$ y $>io (no2 lt p rt) | ge with ins23 h <$ y $>io rt
+  ins23 (su h) <$ y $>io (no2 lt p rt) | ge | rt' = inl la lt \\ p \\ rt' ra
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge with owoto y q
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | le with ins23 h <$ y $>io mt
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | le | inl mt'                = inl (no3 lt p mt' q rt)
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | le | inr (mlt \\ r \\ mrt)  = inr (no2 lt p mlt \\ r \\ no2 mrt q rt)
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | ge with ins23 h <$ y $>io rt
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | ge | inl rt'                = inl (no3 lt p mt q rt')
+  ins23 (su h) <$ y $>io (no3 lt p mt q rt) | ge | ge | inr (rlt \\ r \\ rrt)  = inr (no2 lt p mt \\ q \\ no2 rlt r rrt)
 
   T23 = Sg Nat \ h -> <$ L $>23 h (bot / top)
 
