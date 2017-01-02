@@ -7,12 +7,12 @@ record One : Set where
 REL : Set -> Set1
 REL P = P -> P -> Set
 
-data <$_$>D (P : Set) : Set where
-  top  :       <$ P $>D
-  tb   : P ->  <$ P $>D
-  bot  :       <$ P $>D
+data Extend (P : Set) : Set where
+  top  :      Extend P
+  tb   : P -> Extend P
+  bot  :      Extend P
 
-<$_$>F : {P : Set} -> REL P -> REL <$ P $>D
+<$_$>F : {P : Set} -> REL P -> REL (Extend P)
 <$ L $>F _      top     = One
 <$ L $>F (tb x) (tb y)  = L x y
 <$ L $>F bot    _       = One
@@ -28,7 +28,7 @@ module BinarySearchTreeBest
   (total : (x y : P) -> Total L x y)
   where
 
-  data BST (l u : <$ P $>D) : Set where
+  data BST (l u : Extend P) : Set where
     leaf
       : <$ L $>F l u
       -> BST l u
@@ -38,7 +38,7 @@ module BinarySearchTreeBest
       -> BST (tb p) u
       -> BST l u
 
-  insert : {l u : <$ P $>D}
+  insert : {l u : Extend P}
     -> (p : P)
     -> <$ L $>F l (tb p)
     -> <$ L $>F (tb p) u
@@ -49,11 +49,11 @@ module BinarySearchTreeBest
   ... | xRy pf = node p (insert y lpf pf lt) rt
   ... | yRx pf = node p lt (insert y pf upf rt)
 
-  rotR : {l u : <$ P $>D} -> BST l u -> BST l u
+  rotR : {l u : Extend P} -> BST l u -> BST l u
   rotR (node p (node m lt mt) rt) = node m lt (node p mt rt)
   rotR t = t
 
-  data OList (l u : <$ P $>D) : Set where
+  data OList (l u : Extend P) : Set where
     nil
       : <$ L $>F l u
       -> OList l u
