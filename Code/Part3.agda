@@ -4,27 +4,27 @@ data Zero : Set where
 record One : Set where
   constructor unit
 
-Relation : Set -> Set1
-Relation P = P -> P -> Set
-
 data Extend (P : Set) : Set where
-  top  :      Extend P
-  tb   : P -> Extend P
-  bot  :      Extend P
+  top : Extend P
+  tb : P -> Extend P
+  bot : Extend P
 
-extend : (P : Set) -> Relation P -> Relation (Extend P)
-extend P L _      top     = One
-extend P L (tb x) (tb y)  = L x y
-extend P L bot    _       = One
-extend P L _      _       = Zero
+extend
+  : (P : Set)
+  -> (P -> P -> Set)
+  -> (Extend P -> Extend P -> Set)
+extend P L _      top    = One
+extend P L (tb x) (tb y) = L x y
+extend P L bot    _      = One
+extend P L _      _      = Zero
 
-data Total (P : Set) (L : Relation P) : (x y : P) -> Set where
+data Total (P : Set) (L : P -> P -> Set) : (x y : P) -> Set where
   xRy : (x y : P) -> L x y -> Total P L x y
   yRx : (x y : P) -> L x y -> Total P L y x
 
-module BinarySearchTreeBest
+module BinarySearchTree
   (P : Set)
-  (L : Relation P)
+  (L : P -> P -> Set)
   (total : (x y : P) -> Total P L x y)
   where
 
@@ -75,14 +75,14 @@ module Test1 where
   nat-le (suc n) zero = Zero
   nat-le (suc n) (suc m) = nat-le n m
 
-  nat-owoto : (n m : Nat) -> Total Nat nat-le n m
-  nat-owoto zero m = xRy zero m unit
-  nat-owoto (suc n) zero = yRx zero (suc n) unit
-  nat-owoto (suc n) (suc m) with nat-owoto n m
-  nat-owoto (suc n) (suc m) | xRy .n .m pf = xRy (suc n) (suc m) pf
-  nat-owoto (suc n) (suc m) | yRx .m .n pf = yRx (suc m) (suc n) pf
+  nat-total : (n m : Nat) -> Total Nat nat-le n m
+  nat-total zero m = xRy zero m unit
+  nat-total (suc n) zero = yRx zero (suc n) unit
+  nat-total (suc n) (suc m) with nat-total n m
+  nat-total (suc n) (suc m) | xRy .n .m pf = xRy (suc n) (suc m) pf
+  nat-total (suc n) (suc m) | yRx .m .n pf = yRx (suc m) (suc n) pf
 
-  open BinarySearchTreeBest Nat nat-le nat-owoto
+  open BinarySearchTree Nat nat-le nat-total
 
   test1 : BST bot top
   test1 = leaf unit
@@ -101,14 +101,14 @@ module Test2 where
     zero<= : (m : Nat) -> Nat<= zero m
     suc<=suc : (n m : Nat) -> Nat<= n m -> Nat<= (suc n) (suc m)
 
-  nat-owoto : (x y : Nat) -> Total Nat Nat<= x y
-  nat-owoto zero y = xRy zero y (zero<= y)
-  nat-owoto (suc x) zero = yRx zero (suc x) (zero<= (suc x))
-  nat-owoto (suc x) (suc y) with nat-owoto x y
-  nat-owoto (suc x) (suc y) | xRy .x .y pf = xRy (suc x) (suc y) (suc<=suc x y pf)
-  nat-owoto (suc x) (suc y) | yRx .y .x pf = yRx (suc y) (suc x) (suc<=suc y x pf)
+  nat-total : (x y : Nat) -> Total Nat Nat<= x y
+  nat-total zero y = xRy zero y (zero<= y)
+  nat-total (suc x) zero = yRx zero (suc x) (zero<= (suc x))
+  nat-total (suc x) (suc y) with nat-total x y
+  nat-total (suc x) (suc y) | xRy .x .y pf = xRy (suc x) (suc y) (suc<=suc x y pf)
+  nat-total (suc x) (suc y) | yRx .y .x pf = yRx (suc y) (suc x) (suc<=suc y x pf)
 
-  open BinarySearchTreeBest Nat Nat<= nat-owoto
+  open BinarySearchTree Nat Nat<= nat-total
 
   test1 : BST bot top
   test1 = leaf unit
