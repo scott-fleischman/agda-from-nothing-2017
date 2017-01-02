@@ -12,11 +12,11 @@ data Extend (P : Set) : Set where
   tb   : P -> Extend P
   bot  :      Extend P
 
-<$_$>F : {P : Set} -> Relation P -> Relation (Extend P)
-<$ L $>F _      top     = One
-<$ L $>F (tb x) (tb y)  = L x y
-<$ L $>F bot    _       = One
-<$ L $>F _      _       = Zero
+extend : {P : Set} -> Relation P -> Relation (Extend P)
+extend L _      top     = One
+extend L (tb x) (tb y)  = L x y
+extend L bot    _       = One
+extend L _      _       = Zero
 
 data Total {P} (L : Relation P) : (x y : P) -> Set where
   xRy : {x y : P} -> L x y -> Total L x y
@@ -30,7 +30,7 @@ module BinarySearchTreeBest
 
   data BST (l u : Extend P) : Set where
     leaf
-      : <$ L $>F l u
+      : extend L l u
       -> BST l u
     node
       : (p : P)
@@ -40,8 +40,8 @@ module BinarySearchTreeBest
 
   insert : {l u : Extend P}
     -> (p : P)
-    -> <$ L $>F l (tb p)
-    -> <$ L $>F (tb p) u
+    -> extend L l (tb p)
+    -> extend L (tb p) u
     -> BST l u
     -> BST l u
   insert y lpf upf (leaf pf) = node y (leaf lpf) (leaf upf)
@@ -55,11 +55,11 @@ module BinarySearchTreeBest
 
   data OList (l u : Extend P) : Set where
     nil
-      : <$ L $>F l u
+      : extend L l u
       -> OList l u
     cons
       : (p : P)
-      -> <$ L $>F l (tb p)
+      -> extend L l (tb p)
       -> OList (tb p) u
       -> OList l u 
 
