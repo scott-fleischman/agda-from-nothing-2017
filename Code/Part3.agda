@@ -1,54 +1,46 @@
 module Part3 where
 
-data Zero : Set where
-record One : Set where
-  constructor unit
-
 data Extend (P : Set) : Set where
   top : Extend P
-  tb : P -> Extend P
+  value : P -> Extend P
   bot : Extend P
 
-extend
-  : (P : Set)
-  -> (P -> P -> Set)
-  -> (Extend P -> Extend P -> Set)
-extend P L _      top    = One
-extend P L (tb x) (tb y) = L x y
-extend P L bot    _      = One
-extend P L _      _      = Zero
+data ExtendRel (P : Set) (R : P -> P -> Set) : (l r : Extend P) -> Set where
+  any-top : (ep : Extend P) -> ExtendRel P R ep top
+  relation : (x y : P) -> (r : R x y) -> ExtendRel P R (value x) (value y)
+  bot-any : (ep : Extend P) -> ExtendRel P R bot ep
 
-data Total (P : Set) (L : P -> P -> Set) : (x y : P) -> Set where
-  xRy : (x y : P) -> L x y -> Total P L x y
-  yRx : (x y : P) -> L x y -> Total P L y x
+data Total (P : Set) (R : P -> P -> Set) : (x y : P) -> Set where
+  xRy : (x y : P) -> R x y -> Total P R x y
+  yRx : (x y : P) -> R x y -> Total P R y x
 
 module BinarySearchTree
   (P : Set)
-  (L : P -> P -> Set)
-  (total : (x y : P) -> Total P L x y)
+  (R : P -> P -> Set)
+  (total : (x y : P) -> Total P R x y)
   where
 
   data BST (l u : Extend P) : Set where
     leaf
-      : extend P L l u
+      : ExtendRel P R l u
       -> BST l u
     node
       : (p : P)
-      -> BST l (tb p)
-      -> BST (tb p) u
+      -> BST l (value p)
+      -> BST (value p) u
       -> BST l u
 
   insert
     : (l u : Extend P)
     -> (p : P)
-    -> extend P L l (tb p)
-    -> extend P L (tb p) u
+    -> ExtendRel P R l (value p)
+    -> ExtendRel P R (value p) u
     -> BST l u
     -> BST l u
   insert l u p lpf upf (leaf pf) = node p (leaf lpf) (leaf upf)
   insert l u p lpf upf (node np lt rt) with total p np
-  insert l u p lpf upf (node np lt rt) | xRy .p .np pf = node np (insert l (tb np) p lpf pf lt) rt
-  insert l u p lpf upf (node np lt rt) | yRx .np .p pf = node np lt (insert (tb np) u p pf upf rt)
+  insert l u p lpf upf (node np lt rt) | xRy .p .np pf = node np (insert l (value np) p lpf (relation p np pf) lt) rt
+  insert l u p lpf upf (node np lt rt) | yRx .np .p pf = node np lt (insert (value np) u p (relation np p pf) upf rt)
 
   rotR : (l u : Extend P) -> BST l u -> BST l u
   rotR l u (node p (node m lt mt) rt) = node m lt (node p mt rt)
@@ -56,12 +48,12 @@ module BinarySearchTree
 
   data OList (l u : Extend P) : Set where
     nil
-      : extend P L l u
+      : ExtendRel P R l u
       -> OList l u
     cons
       : (p : P)
-      -> extend P L l (tb p)
-      -> OList (tb p) u
+      -> ExtendRel P R l (value p)
+      -> OList (value p) u
       -> OList l u 
 
 data Nat : Set where
@@ -70,6 +62,10 @@ data Nat : Set where
 {-# BUILTIN NATURAL Nat #-}
 
 module Test1 where
+  data Zero : Set where
+  record One : Set where
+    constructor unit
+
   nat-le : (n m : Nat) -> Set
   nat-le zero m = One
   nat-le (suc n) zero = Zero
@@ -85,16 +81,16 @@ module Test1 where
   open BinarySearchTree Nat nat-le nat-total
 
   test1 : BST bot top
-  test1 = leaf unit
+  test1 = leaf (any-top bot)
 
   test2 : BST bot top
-  test2 = insert bot top 99 unit unit (leaf unit)
+  test2 = insert bot top 99 (bot-any (value 99)) (any-top (value 99)) (leaf (any-top bot))
 
   test2a : BST bot top
-  test2a = node 99 (leaf unit) (leaf unit)
+  test2a = node 99 (leaf (bot-any (value 99))) (leaf (any-top (value 99)))
 
   test3 : BST bot top
-  test3 = node 101 (node 99 (leaf unit) (leaf unit)) (leaf unit) -- a number less than 99 will not type check
+  test3 = node 101 (node 99 (leaf (bot-any (value 99))) (leaf (relation 99 101 unit))) (leaf (any-top (value 101)))
 
 module Test2 where
   data Nat<= : (n m : Nat) -> Set where
@@ -111,16 +107,16 @@ module Test2 where
   open BinarySearchTree Nat Nat<= nat-total
 
   test1 : BST bot top
-  test1 = leaf unit
+  test1 = leaf (any-top bot)
 
   test2 : BST bot top
-  test2 = insert bot top 99 unit unit (leaf unit)
+  test2 = insert bot top 99 (bot-any (value 99)) (any-top (value 99)) (leaf (any-top bot))
 
   test2a : BST bot top
-  test2a = node 99 (leaf unit) (leaf unit)
+  test2a = node 99 (leaf (bot-any (value 99))) (leaf (any-top (value 99)))
 
   3<=5 : Nat<= 3 5
   3<=5 = suc<=suc 2 4 (suc<=suc 1 3 (suc<=suc zero 2 (zero<= 2)))
 
   test3 : BST bot top
-  test3 = node 5 (node 3 (leaf unit) (leaf 3<=5)) (leaf unit)
+  test3 = node 5 (node 3 (leaf (bot-any (value 3))) (leaf (relation 3 5 3<=5))) (leaf (any-top (value 5)))
