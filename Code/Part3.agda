@@ -12,25 +12,25 @@ data Extend (P : Set) : Set where
   tb   : P -> Extend P
   bot  :      Extend P
 
-extend : {P : Set} -> Relation P -> Relation (Extend P)
-extend L _      top     = One
-extend L (tb x) (tb y)  = L x y
-extend L bot    _       = One
-extend L _      _       = Zero
+extend : (P : Set) -> Relation P -> Relation (Extend P)
+extend P L _      top     = One
+extend P L (tb x) (tb y)  = L x y
+extend P L bot    _       = One
+extend P L _      _       = Zero
 
-data Total {P} (L : Relation P) : (x y : P) -> Set where
-  xRy : {x y : P} -> L x y -> Total L x y
-  yRx : {x y : P} -> L x y -> Total L y x
+data Total (P : Set) (L : Relation P) : (x y : P) -> Set where
+  xRy : (x y : P) -> L x y -> Total P L x y
+  yRx : (x y : P) -> L x y -> Total P L y x
 
 module BinarySearchTreeBest
   (P : Set)
   (L : Relation P)
-  (total : (x y : P) -> Total L x y)
+  (total : (x y : P) -> Total P L x y)
   where
 
   data BST (l u : Extend P) : Set where
     leaf
-      : extend L l u
+      : extend P L l u
       -> BST l u
     node
       : (p : P)
@@ -38,28 +38,29 @@ module BinarySearchTreeBest
       -> BST (tb p) u
       -> BST l u
 
-  insert : {l u : Extend P}
+  insert
+    : (l u : Extend P)
     -> (p : P)
-    -> extend L l (tb p)
-    -> extend L (tb p) u
+    -> extend P L l (tb p)
+    -> extend P L (tb p) u
     -> BST l u
     -> BST l u
-  insert y lpf upf (leaf pf) = node y (leaf lpf) (leaf upf)
-  insert y lpf upf (node p lt rt) with total y p
-  ... | xRy pf = node p (insert y lpf pf lt) rt
-  ... | yRx pf = node p lt (insert y pf upf rt)
+  insert l u p lpf upf (leaf pf) = node p (leaf lpf) (leaf upf)
+  insert l u p lpf upf (node np lt rt) with total p np
+  insert l u p lpf upf (node np lt rt) | xRy .p .np pf = node np (insert l (tb np) p lpf pf lt) rt
+  insert l u p lpf upf (node np lt rt) | yRx .np .p pf = node np lt (insert (tb np) u p pf upf rt)
 
-  rotR : {l u : Extend P} -> BST l u -> BST l u
-  rotR (node p (node m lt mt) rt) = node m lt (node p mt rt)
-  rotR t = t
+  rotR : (l u : Extend P) -> BST l u -> BST l u
+  rotR l u (node p (node m lt mt) rt) = node m lt (node p mt rt)
+  rotR l u t = t
 
   data OList (l u : Extend P) : Set where
     nil
-      : extend L l u
+      : extend P L l u
       -> OList l u
     cons
       : (p : P)
-      -> extend L l (tb p)
+      -> extend P L l (tb p)
       -> OList (tb p) u
       -> OList l u 
 
@@ -69,17 +70,17 @@ data Nat : Set where
 {-# BUILTIN NATURAL Nat #-}
 
 module Test1 where
-  nat-le : (x y : Nat) -> Set
-  nat-le zero y = One
-  nat-le (suc x) zero = Zero
-  nat-le (suc x) (suc y) = nat-le x y
+  nat-le : (n m : Nat) -> Set
+  nat-le zero m = One
+  nat-le (suc n) zero = Zero
+  nat-le (suc n) (suc m) = nat-le n m
 
-  nat-owoto : (x y : Nat) -> Total nat-le x y
-  nat-owoto zero y = xRy unit
-  nat-owoto (suc x) zero = yRx unit
-  nat-owoto (suc x) (suc y) with nat-owoto x y
-  nat-owoto (suc x) (suc y) | xRy prf = xRy prf
-  nat-owoto (suc x) (suc y) | yRx prf = yRx prf
+  nat-owoto : (n m : Nat) -> Total Nat nat-le n m
+  nat-owoto zero m = xRy zero m unit
+  nat-owoto (suc n) zero = yRx zero (suc n) unit
+  nat-owoto (suc n) (suc m) with nat-owoto n m
+  nat-owoto (suc n) (suc m) | xRy .n .m pf = xRy (suc n) (suc m) pf
+  nat-owoto (suc n) (suc m) | yRx .m .n pf = yRx (suc m) (suc n) pf
 
   open BinarySearchTreeBest Nat nat-le nat-owoto
 
@@ -87,7 +88,7 @@ module Test1 where
   test1 = leaf unit
 
   test2 : BST bot top
-  test2 = insert 99 unit unit (leaf unit)
+  test2 = insert bot top 99 unit unit (leaf unit)
 
   test2a : BST bot top
   test2a = node 99 (leaf unit) (leaf unit)
@@ -100,12 +101,12 @@ module Test2 where
     zero<= : (m : Nat) -> Nat<= zero m
     suc<=suc : (n m : Nat) -> Nat<= n m -> Nat<= (suc n) (suc m)
 
-  nat-owoto : (x y : Nat) -> Total Nat<= x y
-  nat-owoto zero y = xRy (zero<= y)
-  nat-owoto x@(suc _) zero = yRx (zero<= x)
+  nat-owoto : (x y : Nat) -> Total Nat Nat<= x y
+  nat-owoto zero y = xRy zero y (zero<= y)
+  nat-owoto (suc x) zero = yRx zero (suc x) (zero<= (suc x))
   nat-owoto (suc x) (suc y) with nat-owoto x y
-  nat-owoto (suc x) (suc y) | xRy prf = xRy (suc<=suc x y prf)
-  nat-owoto (suc x) (suc y) | yRx prf = yRx (suc<=suc y x prf)
+  nat-owoto (suc x) (suc y) | xRy .x .y pf = xRy (suc x) (suc y) (suc<=suc x y pf)
+  nat-owoto (suc x) (suc y) | yRx .y .x pf = yRx (suc y) (suc x) (suc<=suc y x pf)
 
   open BinarySearchTreeBest Nat Nat<= nat-owoto
 
@@ -113,7 +114,7 @@ module Test2 where
   test1 = leaf unit
 
   test2 : BST bot top
-  test2 = insert 99 unit unit (leaf unit)
+  test2 = insert bot top 99 unit unit (leaf unit)
 
   test2a : BST bot top
   test2a = node 99 (leaf unit) (leaf unit)
