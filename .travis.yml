@@ -15,4 +15,5 @@ script:
   - docker run -v $TRAVIS_BUILD_DIR:/opt/agda-build scottfleischman/agda:2.5.2 /bin/sh -c 'cd /opt/agda-build/Code; agda --allow-unsolved-metas Part1.agda'
   - docker run -v $TRAVIS_BUILD_DIR:/opt/agda-build scottfleischman/agda:2.5.2 /bin/sh -c 'cd /opt/agda-build/Code; agda --allow-unsolved-metas Part2-Skip.agda'
   - docker run -v $TRAVIS_BUILD_DIR:/opt/agda-build scottfleischman/agda:2.5.2 /bin/sh -c 'cd /opt/agda-build/Code; agda --allow-unsolved-metas Part3.agda'
+  - docker run -v $TRAVIS_BUILD_DIR:/opt/agda-build scottfleischman/agda:2.5.2 /bin/sh -c 'cd /opt/agda-build/Code; agda --allow-unsolved-metas Part4.agda'
   - docker run -v $TRAVIS_BUILD_DIR:/opt/agda-build scottfleischman/agda:2.5.2 /bin/sh -c 'cd /opt/agda-build/Paper; agda --allow-unsolved-metas Everything.agda'
