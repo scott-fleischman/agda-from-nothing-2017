@@ -93,3 +93,48 @@ insert-ex : Nat -> 23TreeEx -> 23TreeEx
 insert-ex x (23tree-ex height tree) with insert bottom top height x (bottom-any (value x)) (any-top (value x)) tree
 insert-ex x (23tree-ex height tree) | normal t = 23tree-ex height t
 insert-ex x (23tree-ex height tree) | too-big y tby tyt = 23tree-ex (suc height) (node2 height y tby tyt)
+
+
+data OList (l u : Bound) : Set where
+  nil : (l <B= u) -> OList l u
+  add : (p : Nat)
+    -> (l <B= value p)
+    -> OList (value p) u
+    -> OList l u
+
+data OListEx : Set where
+  olist-ex : OList bottom top -> OListEx
+
+sandwich : (l u : Bound)
+  -> (p : Nat)
+  -> OList l (value p)
+  -> OList (value p) u
+  -> OList l u
+sandwich l u p (nil lp) ys = add p lp ys
+sandwich l u p (add p2 x xs) ys = add p2 x (sandwich (value p2) u p xs ys)
+
+flatten : (l u : Bound)
+  -> (h : Nat)
+  -> 23Tree l u h
+  -> OList l u
+flatten l u .0 (leaf lu) = nil lu
+flatten l u .(suc h) (node2 h x tlx txu) = sandwich l u x (flatten l (value x) h tlx) (flatten (value x) u h txu)
+flatten l u .(suc h) (node3 h x y tlx txy tyu) = sandwich l u x (flatten l (value x) h tlx) (sandwich (value x) u y (flatten (value x) (value y) h txy) (flatten (value y) u h tyu))
+
+flatten-ex : 23TreeEx -> OListEx
+flatten-ex (23tree-ex height tree) = olist-ex (flatten bottom top height tree)
+
+data List : Set where
+  nil : List
+  _::_ : Nat -> List -> List
+infixr 5 _::_
+
+foldr : (A : Set) -> (f : Nat -> A -> A) -> List -> A -> A
+foldr A f nil d = d
+foldr A f (x :: xs) d = f x (foldr A f xs d)
+
+numbers : List
+numbers = 91 :: 10 :: 73 :: 33 :: 61 :: 47 :: 78 :: 51 :: 86 :: 43 :: 30 :: 83 :: 16 :: 88 ::  1 :: 94 :: 69 ::  2 :: 72 :: 56 ::  9 :: 46 :: 58 ::  8 ::  4 :: 85 :: 21 :: 13 :: 18 :: 89 :: 55 :: 42 :: 62 :: 37 :: 45 :: 36 :: 100 :: 35 :: 96 :: 64 ::  5 :: 77 :: 31 ::  6 :: 26 :: 41 :: 24 :: 82 :: 22 :: 81 :: 84 :: 70 :: 44 :: 65 :: 75 :: 25 :: 28 :: 97 :: 79 :: 23 :: 53 :: 54 :: 19 :: 66 :: 99 ::  7 :: 48 :: 68 :: 98 :: 20 :: 76 :: 59 :: 90 ::  3 :: 95 :: 39 :: 63 :: 32 :: 74 :: 49 :: 11 :: 92 :: 17 :: 40 :: 29 :: 93 :: 67 :: 57 :: 27 :: 34 :: 12 :: 14 :: 87 :: 80 :: 71 :: 52 :: 15 :: 50 :: 60 :: 38 :: nil
+
+sort : List -> OListEx
+sort xs = flatten-ex (foldr 23TreeEx insert-ex xs (23tree-ex 0 (leaf (any-top bottom))))
