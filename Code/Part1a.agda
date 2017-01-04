@@ -25,9 +25,8 @@ data Result : Set where
   result : Result
 
 check-value : (n m : Nat) -> (isLessEq : Bool) -> Result
-check-value zero m b = {!!}
-check-value (suc n) zero true = {!!}
-check-value (suc n) zero false = {!!}
+check-value zero    m       b = {!!}
+check-value (suc n) zero    b = {!!}
 check-value (suc n) (suc m) b = {!!}
 
 use-evidence : (n m : Nat) -> (evidence : n <= m) -> Result
