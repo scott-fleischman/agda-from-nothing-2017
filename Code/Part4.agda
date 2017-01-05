@@ -2,7 +2,7 @@ module Part4 where
 
 data Zero : Set where
 record One : Set where
-  constructor unit
+  constructor !
 
 data Nat : Set where
   zero : Nat
@@ -19,8 +19,8 @@ data Total : (x y : Nat) -> Set where
   y<=x : (x y : Nat) -> (pf : y <N= x) -> Total x y
 
 compare : (x y : Nat) -> Total x y
-compare zero y = x<=y zero y unit
-compare (suc x) zero = y<=x (suc x) zero unit
+compare zero y = x<=y zero y !
+compare (suc x) zero = y<=x (suc x) zero !
 compare (suc x) (suc y) with compare x y
 compare (suc x) (suc y) | x<=y .x .y pf = x<=y (suc x) (suc y) pf
 compare (suc x) (suc y) | y<=x .x .y pf = y<=x (suc x) (suc y) pf
@@ -127,8 +127,41 @@ flatten l u .0 (leaf lu) = nil lu
 flatten l u .(suc h) (node2 h x tlx txu) = sandwich l u x (flatten l (value x) h tlx) (flatten (value x) u h txu)
 flatten l u .(suc h) (node3 h x y tlx txy tyu) = sandwich l u x (flatten l (value x) h tlx) (sandwich (value x) u y (flatten (value x) (value y) h txy) (flatten (value y) u h tyu))
 
+flapp : (l u : Bound)
+  -> (h : Nat)
+  -> (p : Nat)
+  -> 23Tree l (value p) h
+  -> OList (value p) u
+  -> OList l u
+flapp l u .0 p (leaf lu) ys = add p lu ys
+flapp l u .(suc h) p (node2 h x tlx txp) ys = flapp l u h x tlx (flapp (value x) u h p txp ys)
+flapp l u .(suc h) p (node3 h x y tlx txy typ) ys = flapp l u h x tlx (flapp (value x) u h y txy (flapp (value y) u h p typ ys))
+
+flatten' : (l u : Bound)
+  -> (h : Nat)
+  -> 23Tree l u h
+  -> OList l u
+flatten' l u .0 (leaf lu) = nil lu
+flatten' l u .(suc h) (node2 h x tlx txu) = flapp l u h x tlx (flatten' (value x) u h txu)
+flatten' l u .(suc h) (node3 h x y tlx txy tyu) = flapp l u h x tlx (flapp (value x) u h y txy (flatten' (value y) u h tyu))
+
+flapp' : (l n u : Bound)
+  -> (h : Nat)
+  -> 23Tree l n h
+  -> ((m : Bound) -> m <B= n -> OList m u)
+  -> OList l u
+flapp' l n u .0 (leaf lu) f = f l lu
+flapp' l n u .(suc h) (node2 h x tlx txn) f = flapp' l (value x) u h tlx (λ m z → add x z (flapp' (value x) n u h txn f))
+flapp' l n u .(suc h) (node3 h x y tlx txy tyn) f = flapp' l (value x) u h tlx (λ m mx → add x mx (flapp' (value x) (value y) u h txy (λ q qy → add y qy (flapp' (value y) n u h tyn f))))
+
+flatten'' : (l u : Bound)
+  -> (h : Nat)
+  -> 23Tree l u h
+  -> OList l u
+flatten'' l u h t = flapp' l u u h t (λ m mu → nil mu)
+
 flatten-ex : 23TreeEx -> OListEx
-flatten-ex (23tree-ex height tree) = olist-ex (flatten bottom top height tree)
+flatten-ex (23tree-ex height tree) = olist-ex (flatten'' bottom top height tree)
 
 data List : Set where
   nil : List
@@ -139,8 +172,8 @@ foldr : (A : Set) -> (f : Nat -> A -> A) -> List -> A -> A
 foldr A f nil d = d
 foldr A f (x :: xs) d = f x (foldr A f xs d)
 
-numbers : List
-numbers = 91 :: 10 :: 73 :: 33 :: 61 :: 47 :: 78 :: 51 :: 86 :: 43 :: 30 :: 83 :: 16 :: 88 ::  1 :: 94 :: 69 ::  2 :: 72 :: 56 ::  9 :: 46 :: 58 ::  8 ::  4 :: 85 :: 21 :: 13 :: 18 :: 89 :: 55 :: 42 :: 62 :: 37 :: 45 :: 36 :: 100 :: 35 :: 96 :: 64 ::  5 :: 77 :: 31 ::  6 :: 26 :: 41 :: 24 :: 82 :: 22 :: 81 :: 84 :: 70 :: 44 :: 65 :: 75 :: 25 :: 28 :: 97 :: 79 :: 23 :: 53 :: 54 :: 19 :: 66 :: 99 ::  7 :: 48 :: 68 :: 98 :: 20 :: 76 :: 59 :: 90 ::  3 :: 95 :: 39 :: 63 :: 32 :: 74 :: 49 :: 11 :: 92 :: 17 :: 40 :: 29 :: 93 :: 67 :: 57 :: 27 :: 34 :: 12 :: 14 :: 87 :: 80 :: 71 :: 52 :: 15 :: 50 :: 60 :: 38 :: nil
-
 sort : List -> OListEx
 sort xs = flatten-ex (foldr 23TreeEx insert-ex xs (23tree-ex 0 (leaf _)))
+
+numbers : List
+numbers = 91 :: 10 :: 73 :: 33 :: 61 :: 47 :: 78 :: 51 :: 86 :: 43 :: 30 :: 83 :: 16 :: 88 ::  1 :: 94 :: 69 ::  2 :: 72 :: 56 ::  9 :: 46 :: 58 ::  8 ::  4 :: 85 :: 21 :: 13 :: 18 :: 89 :: 55 :: 42 :: 62 :: 37 :: 45 :: 36 :: 100 :: 35 :: 96 :: 64 ::  5 :: 77 :: 31 ::  6 :: 26 :: 41 :: 24 :: 82 :: 22 :: 81 :: 84 :: 70 :: 44 :: 65 :: 75 :: 25 :: 28 :: 97 :: 79 :: 23 :: 53 :: 54 :: 19 :: 66 :: 99 ::  7 :: 48 :: 68 :: 98 :: 20 :: 76 :: 59 :: 90 ::  3 :: 95 :: 39 :: 63 :: 32 :: 74 :: 49 :: 11 :: 92 :: 17 :: 40 :: 29 :: 93 :: 67 :: 57 :: 27 :: 34 :: 12 :: 14 :: 87 :: 80 :: 71 :: 52 :: 15 :: 50 :: 60 :: 38 :: nil
