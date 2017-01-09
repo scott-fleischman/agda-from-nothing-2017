@@ -156,28 +156,30 @@ module Order
 
     insert : {l u : Bound}
       -> {h : Nat}
-      -> Interval l u
+      -> (p : P)
+      -> l <B= value p
+      -> value p <B= u
       -> 23Tree l u h
       -> Result l u h
-    insert (interval p lp pu) (leaf lu) = too-big p (leaf lp) (leaf pu)
-    insert (interval p lp pu) (node2 x tlx txu) with compare p x
-    insert (interval p lp pu) (node2 x tlx txu) | Relation.xRy px with insert (interval p lp px) tlx
-    ... | (ok tlx') = ok (node2 x tlx' txu)
-    ... | (too-big y tly tyx) = ok (node3 y x tly tyx txu)
-    insert (interval p lp pu) (node2 x tlx txu) | Relation.yRx xp with insert (interval p xp pu) txu
-    ... | (ok txu') = ok (node2 x tlx txu')
-    ... | (too-big y txy tyu) = ok (node3 x y tlx txy tyu)
-    insert (interval p lp pu) (node3 x y tlx txy tyu) with compare p x
-    insert (interval p lp pu) (node3 x y tlx txy tyu) | Relation.xRy px with insert (interval p lp px) tlx
-    ... | (ok tlx') = ok (node3 x y tlx' txy tyu)
-    ... | (too-big z tlz tzx) = too-big x (node2 z tlz tzx) (node2 y txy tyu)
-    insert (interval p lp pu) (node3 x y tlx txy tyu) | Relation.yRx xp with compare p y
-    insert (interval p lp pu) (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.xRy py with insert (interval p xp py) txy
-    ... | (ok txy') = ok (node3 x y tlx txy' tyu)
-    ... | (too-big z txz tzy) = too-big z (node2 x tlx txz) (node2 y tzy tyu)
-    insert (interval p lp pu) (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.yRx yp with insert (interval p yp pu) tyu
-    ... | (ok tyu') = ok (node3 x y tlx txy tyu')
-    ... | (too-big z tyz tzu) = too-big y (node2 x tlx txy) (node2 z tyz tzu)
+    insert p lp pu (leaf lu) = too-big p (leaf lp) (leaf pu)
+    insert p lp pu (node2 x tlx txu) with compare p x
+    insert p lp pu (node2 x tlx txu) | Relation.xRy px with insert p lp px tlx
+    insert p lp pu (node2 x tlx txu) | Relation.xRy px | ok tlx' = ok (node2 x tlx' txu)
+    insert p lp pu (node2 x tlx txu) | Relation.xRy px | too-big y tly tyx = ok (node3 y x tly tyx txu)
+    insert p lp pu (node2 x tlx txu) | Relation.yRx xp with insert p xp pu txu
+    insert p lp pu (node2 x tlx txu) | Relation.yRx xp | ok txu' = ok (node2 x tlx txu')
+    insert p lp pu (node2 x tlx txu) | Relation.yRx xp | too-big y txy tyu = ok (node3 x y tlx txy tyu)
+    insert p lp pu (node3 x y tlx txy tyu) with compare p x
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.xRy px with insert p lp px tlx
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.xRy px | ok tlx' = ok (node3 x y tlx' txy tyu)
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.xRy px | too-big z tlz tzx = too-big x (node2 z tlz tzx) (node2 y txy tyu)
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp with compare p y
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.xRy py with insert p xp py txy
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.xRy py | ok txy' = ok (node3 x y tlx txy' tyu)
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.xRy py | too-big z txz tzy = too-big z (node2 x tlx txz) (node2 y tzy tyu)
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.yRx yp with insert p yp pu tyu
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.yRx yp | ok tyu' = ok (node3 x y tlx txy tyu')
+    insert p lp pu (node3 x y tlx txy tyu) | Relation.yRx xp | Relation.yRx yp | too-big z tyz tzu = too-big y (node2 x tlx txy) (node2 z tyz tzu)
 
     record 23Treex : Set where
       constructor 23treex
@@ -186,7 +188,7 @@ module Order
         tree : 23Tree bottom top height
 
     insert-any : P -> 23Treex -> 23Treex
-    insert-any p (23treex height tree) with insert (interval p unit unit) tree
+    insert-any p (23treex height tree) with insert p unit unit tree
     insert-any p (23treex height tree) | ok tree' = 23treex height tree'
     insert-any p (23treex height tree) | too-big x tlx txu = 23treex (suc height) (node2 x tlx txu)
 
