@@ -48,9 +48,14 @@ Note that the code in the workshop will only use ASCII so you do not need to use
 ## Resources
 * [Agda Documentation](http://agda.readthedocs.io/)
 * The old [Agda Wiki](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Documentation) has links to other resources.
+* The *really* old documentation on [Agda 1](http://ocvs.cfv.jp/Agda/index.html)
 * *How to Keep Your Neighbours in Order* by Conor McBride (2014)
   * [PDF](https://personal.cis.strath.ac.uk/conor.mcbride/Pivotal.pdf)
   * [Code](https://github.com/pigworker/Pivotal)
   * [ICFP 2014 Video](https://www.youtube.com/watch?v=pNBPCnZEdSs)
   * [YOW! Lambda Jam 2016 - What are Types for, or are they only Against?](https://youtu.be/3U3lV5VPmOU?t=2985)
 * Book: [Verified Functional Programming in Agda](http://www.amazon.com/Verified-Functional-Programming-Aaron-Stump/dp/1970001240) by Aaron Stump
+
+## Historical
+* [Agda 1](http://ocvs.cfv.jp/Agda/index.html)
+* [Agda](http://web.archive.org/web/20010306072347/http://www.cs.chalmers.se/~catarina/agda/) on Catarina Coquand's page (archived)
