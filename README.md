@@ -48,7 +48,6 @@ Note that the code in the workshop will only use ASCII so you do not need to use
 ## Resources
 * [Agda Documentation](http://agda.readthedocs.io/)
 * The old [Agda Wiki](http://wiki.portal.chalmers.se/agda/pmwiki.php?n=Main.Documentation) has links to other resources.
-* The *really* old documentation on [Agda 1](http://ocvs.cfv.jp/Agda/index.html)
 * *How to Keep Your Neighbours in Order* by Conor McBride (2014)
   * [PDF](https://personal.cis.strath.ac.uk/conor.mcbride/Pivotal.pdf)
   * [Code](https://github.com/pigworker/Pivotal)
