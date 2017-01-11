@@ -26,25 +26,6 @@ zero <= y = true
 suc x <= zero = false
 suc x <= suc y = x <= y
 
-data Zero : Set where
-record One : Set where
-  constructor unit
-
-_<='_ : (x y : Nat) -> Set
-zero <=' y = One
-suc x <=' zero = Zero
-suc x <=' suc y = x <=' y
-
-data _<=''_ : (x y : Nat) -> Set where
-  zero<=any : (y : Nat) -> zero <='' y
-  suc<=suc : {x y : Nat} -> x <='' y -> suc x <='' suc y
-
-test2<=3 : 2 <='' 3
-test2<=3 = suc<=suc (suc<=suc (zero<=any 1))
-
-test3</=2 : 3 <='' 2 -> Zero
-test3</=2 (suc<=suc (suc<=suc ()))
-
 test : Bool
 test = 10 <= 10
 
@@ -84,6 +65,13 @@ insert x (node y lt rt) | false = node y lt            (insert x rt)
 myTree2 : Tree
 myTree2 = insert 10 (insert 7 (insert 100 (insert 3 (insert 5 leaf))))
 
+foldr : {A : Set} -> (Nat -> A -> A) -> A -> List -> A
+foldr f a nil = a
+foldr f a (x :: xs) = f x (foldr f a xs)
+
+fromList : List -> Tree
+fromList = foldr insert leaf
+
 append : List -> List -> List
 append nil ys = ys
 append (x :: xs) ys = x :: append xs ys
@@ -92,18 +80,45 @@ flatten : Tree -> List
 flatten leaf = nil
 flatten (node x lt rt) = append (flatten lt) (x :: flatten rt)
 
-foldr : {A : Set} -> (Nat -> A -> A) -> A -> List -> A
-foldr f d nil = d
-foldr f d (x :: xs) = f x (foldr f d xs)
+flapp : Tree -> List -> List
+flapp leaf ys = ys
+flapp (node x lt rt) ys = flapp lt (x :: flapp rt ys)
 
-fromList : List -> Tree
-fromList = foldr insert leaf
+flatten' : Tree -> List
+flatten' t = flapp t nil
 
 sort : List -> List
-sort xs = flatten (fromList xs)
+sort xs = flatten' (fromList xs)
 
 
 --- Part 2: Correct-by-construction BST
+
+data Zero : Set where
+record One : Set where
+  constructor unit
+
+{-
+_<=_ : (x y : Nat) -> Bool
+zero <= y = true
+suc x <= zero = false
+suc x <= suc y = x <= y
+-}
+
+_<='_ : (x y : Nat) -> Set
+zero <=' y = One
+suc x <=' zero = Zero
+suc x <=' suc y = x <=' y
+
+data _<=''_ : (x y : Nat) -> Set where
+  zero<=any : (y : Nat) -> zero <='' y
+  suc<=suc : {x y : Nat} -> x <='' y -> suc x <='' suc y
+
+test2<=3 : 2 <='' 3
+test2<=3 = suc<=suc (suc<=suc (zero<=any 1))
+
+test3</=2 : 3 <='' 2 -> Zero
+test3</=2 (suc<=suc (suc<=suc ()))
+
 
 data Bound : Set where
   top : Bound
@@ -203,17 +218,17 @@ sortBST : List -> OList bottom top
 sortBST xs = flattenBST (fromListBST xs)
 
 
-flapp : {l n u : Bound}
+flappBST : {l n u : Bound}
   -> BST l n
   -> ({m : Bound} -> m <B= n -> OList m u)
   -> OList l u
-flapp (leaf lx) f = f lx
-flapp (node x lt rt) f = flapp lt (λ z → add x z (flapp rt f))
+flappBST (leaf lx) f = f lx
+flappBST (node x lt rt) f = flappBST lt (λ z → add x z (flappBST rt f))
 
 flattenBST' : {l u : Bound}
   -> BST l u
   -> OList l u
-flattenBST' t = flapp t nil
+flattenBST' t = flappBST t nil
 
 sortBST' : List -> OList bottom top
 sortBST' xs = flattenBST' (fromListBST xs)
