@@ -109,15 +109,22 @@ zero <=' y = One
 suc x <=' zero = Zero
 suc x <=' suc y = x <=' y
 
+test2<=3' : 2 <=' 3
+test2<=3' = unit
+
+test3</=2' : 3 <=' 2 -> Zero
+test3</=2' ()
+
+
 data _<=''_ : (x y : Nat) -> Set where
   zero<=any : (y : Nat) -> zero <='' y
   suc<=suc : {x y : Nat} -> x <='' y -> suc x <='' suc y
 
-test2<=3 : 2 <='' 3
-test2<=3 = suc<=suc (suc<=suc (zero<=any 1))
+test2<=3'' : 2 <='' 3
+test2<=3'' = suc<=suc (suc<=suc (zero<=any 1))
 
-test3</=2 : 3 <='' 2 -> Zero
-test3</=2 (suc<=suc (suc<=suc ()))
+test3</=2'' : 3 <='' 2 -> Zero
+test3</=2'' (suc<=suc (suc<=suc ()))
 
 
 data Bound : Set where
@@ -179,8 +186,12 @@ insertBST (interval x lx xu) (node y lt rt) with compare x y
 ... | result<= xy = node y (insertBST (interval x lx xy) lt) rt
 ... | result>= yx = node y lt                                (insertBST (interval x yx xu) rt)
 
+insertBSTb : Nat -> BST bottom top -> BST bottom top
+insertBSTb n t = insertBST (interval n unit unit) t
 
--- Part 2B -- Efficient flattening into correct-by-construction ordered lists
+fromListBST : List -> BST bottom top
+fromListBST = foldr insertBSTb (leaf unit)
+
 
 {-
 data BST (l u : Bound) : Set where
@@ -197,26 +208,6 @@ data OList (l u : Bound) : Set where
     -> OList (value x) u
     -> OList l u
 
-appendOL : {l n u : Bound}
-  -> OList l n
-  -> ({m : Bound} -> m <B= n -> OList m u)
-  -> OList l u
-appendOL (nil ln) f = f ln
-appendOL (add x lx xs) f = add x lx (appendOL xs f)
-
-flattenBST : {l u : Bound} -> BST l u -> OList l u
-flattenBST (leaf lu) = nil lu
-flattenBST (node x lt rt) = appendOL (flattenBST lt) (λ mx → add x mx (flattenBST rt))
-
-insertBSTb : Nat -> BST bottom top -> BST bottom top
-insertBSTb n t = insertBST (interval n unit unit) t
-
-fromListBST : List -> BST bottom top
-fromListBST = foldr insertBSTb (leaf unit)
-
-sortBST : List -> OList bottom top
-sortBST xs = flattenBST (fromListBST xs)
-
 
 flappBST : {l n u : Bound}
   -> BST l n
@@ -225,13 +216,13 @@ flappBST : {l n u : Bound}
 flappBST (leaf lx) f = f lx
 flappBST (node x lt rt) f = flappBST lt (λ z → add x z (flappBST rt f))
 
-flattenBST' : {l u : Bound}
+flattenBST : {l u : Bound}
   -> BST l u
   -> OList l u
-flattenBST' t = flappBST t nil
+flattenBST t = flappBST t nil
 
-sortBST' : List -> OList bottom top
-sortBST' xs = flattenBST' (fromListBST xs)
+sortBST : List -> OList bottom top
+sortBST xs = flattenBST (fromListBST xs)
 
 
 -- Part 3 -- Correct-by-construction 2-3 tree
