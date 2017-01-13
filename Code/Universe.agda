@@ -1,7 +1,5 @@
 module Universe where
 
--- Prologomena
-
 data Zero : Set where
 record One : Set where
   constructor unit
@@ -34,78 +32,76 @@ data Nat : Set where
   suc : Nat -> Nat
 {-# BUILTIN NATURAL Nat #-}
 
-
--- Universe
-
-data JJ : Set where
-  qR qP q1 : JJ
-  _q+_ _q*_ : (S T : JJ) -> JJ
-infixr 4 _q+_
-infixr 5 _q*_
-
-<!_!>JJ : JJ -> Set -> Set -> Set
-<! qR !>JJ R P = R
-<! qP !>JJ R P = P
-<! q1 !>JJ R P = One
-<! S q+ T !>JJ R P = <! S !>JJ R P + <! T !>JJ R P 
-<! S q* T !>JJ R P = <! S !>JJ R P * <! T !>JJ R P
-
-data MuJJ (F : JJ) (P : Set) : Set where
-  la_ra : <! F !>JJ (MuJJ F P) P -> MuJJ F P
-
-
 record Applicative (H : Set -> Set) : Set1 where
   field
     pure : {A : Set} -> A -> H A
     _<*>_ : {S T : Set} -> H (S -> T) -> H S -> H T
   infixl 5 _<*>_
 
-
-traverse
-  : {A B : Set}
-  -> {F : JJ}
-  -> {H : Set -> Set}
-  -> Applicative H
-  -> (A -> H B)
-  -> MuJJ F A
-  -> H (MuJJ F B)
-traverse {A} {B} {F} {H} AH h t = go qR t
-  where
-  open Applicative AH
-  go : (G : JJ)
-    -> <! G !>JJ (MuJJ F A) A
-    -> H (<! G !>JJ (MuJJ F B) B)
-  go qR la t ra = pure la_ra <*> go F t
-  go qP a = h a
-  go q1 unit = pure unit
-  go (S q+ T) (inl s) = pure inl <*> go S s
-  go (S q+ T) (inr t) = pure inr <*> go T t
-  go (S q* T) (s / t) = pure _/_ <*> go S s <*> go T t 
-
 record Monoid (X : Set) : Set where
   field
     neutral : X
     combine : X -> X -> X
+
   monApp : Applicative (\ _ -> X)
   monApp = record { pure = \ _ -> neutral ; _<*>_ = combine }
-  crush : {P : Set} -> {F : JJ} -> (P -> X) -> MuJJ F P -> X
-  crush = traverse {B = Zero} monApp
 
 compMon : {X : Set} -> Monoid (X -> X)
 compMon = record { neutral = id ; combine = \ f g -> f o g }
 
-foldr : {A B : Set}
-  -> {F : JJ}
-  -> (A -> B -> B)
-  -> B
-  -> MuJJ F A
-  -> B
-foldr f b t = Monoid.crush compMon f t b
+module Universe where
+  data JJ : Set where
+    qR qP q1 : JJ
+    _q+_ _q*_ : (S T : JJ) -> JJ
+  infixr 4 _q+_
+  infixr 5 _q*_
 
+  <!_!>JJ : JJ -> (R P : Set) -> Set
+  <! qR !>JJ R P = R
+  <! qP !>JJ R P = P
+  <! q1 !>JJ R P = One
+  <! S q+ T !>JJ R P = <! S !>JJ R P + <! T !>JJ R P 
+  <! S q* T !>JJ R P = <! S !>JJ R P * <! T !>JJ R P
 
--- Subuniverse
+  data MuJJ (F : JJ) (P : Set) : Set where
+    la_ra : <! F !>JJ (MuJJ F P) P -> MuJJ F P
+
+  traverse
+    : {A B : Set}
+    -> {F : JJ}
+    -> {H : Set -> Set}
+    -> Applicative H
+    -> (A -> H B)
+    -> MuJJ F A
+    -> H (MuJJ F B)
+  traverse {A} {B} {F} {H} AH h t = go qR t
+    where
+    open Applicative AH
+    go : (G : JJ)
+      -> <! G !>JJ (MuJJ F A) A
+      -> H (<! G !>JJ (MuJJ F B) B)
+    go qR la t ra = pure la_ra <*> go F t
+    go qP a = h a
+    go q1 unit = pure unit
+    go (S q+ T) (inl s) = pure inl <*> go S s
+    go (S q+ T) (inr t) = pure inr <*> go T t
+    go (S q* T) (s / t) = pure _/_ <*> go S s <*> go T t
+
+  crush : {P X : Set} -> (M : Monoid X) -> {F : JJ} -> (P -> X) -> MuJJ F P -> X
+  crush M = traverse {B = Zero} (Monoid.monApp M)
+
+  foldr : {A B : Set}
+    -> {F : JJ}
+    -> (A -> B -> B)
+    -> B
+    -> MuJJ F A
+    -> B
+  foldr f b t = crush compMon f t b
+
 
 module Subuniverse where
+  open Universe
+
   data SO : Set where
     qR q1 : SO
     _q+_ _q^_ : (S T : SO) -> SO
@@ -348,6 +344,7 @@ module Ordered
     insertx p (23treex height 23tree) | ok t = 23treex height t
     insertx p (23treex height 23tree) | too-big q lt rt = 23treex (suc height) (n2 q lt rt)
 
+    open Universe
     sort : {F : JJ} -> MuJJ F P -> OList (from bottom to top)
     sort = flatten o 23Treex.23tree o foldr insertx (23treex zero (n0 unit))
 
@@ -364,15 +361,15 @@ module Test where
   compare (suc x) (suc y) | x<=y xy = x<=y xy
   compare (suc x) (suc y) | y<=x yx = y<=x yx
 
-  open Ordered Nat _<=_ compare
-  open Indexed
-
+  open Universe
   pattern [] = la inl unit ra
-  pattern _::_ x xs = la (inr (x / xs)) ra
+  pattern _::_ x xs = la inr (x / xs) ra
   infixr 5 _::_
 
   numbers : MuJJ (q1 q+ qP q* qR) Nat
   numbers = 6 :: 10 :: 4 :: 5 :: 1 :: 9 :: 8 :: 2 :: 3 :: 7 :: []
 
+  open Ordered Nat _<=_ compare
+  open Indexed
   sorted : OList (from bottom to top)
   sorted = sort numbers
