@@ -126,9 +126,9 @@ module Subuniverse where
   qInterval = q1 q^ q1
 
 
-data Total {P : Set} (_<=_ : (x y : P) -> Set) : (x y : P) -> Set where
-  x<=y : {x y : P} -> x <= y -> Total _<=_ x y
-  y<=x : {x y : P} -> y <= x -> Total _<=_ x y
+data Total {P : Set} (_<=_ : (x y : P) -> Set) (x y : P) : Set where
+  x<=y : x <= y -> Total _<=_ x y
+  y<=x : y <= x -> Total _<=_ x y
 
 module Ordered
   (P : Set)
